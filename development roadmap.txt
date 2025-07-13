@@ -1,0 +1,100 @@
+DEVELOPMENT ROADMAP — Step-by-Step
+Each phase adds one or two new systems. I’ll note dependencies and provide notes if anything can be built in parallel.
+
+PHASE 1: Core Loop Prototype
+Focus: Establish gameplay flow with placeholder data.
+
+Features to Build:
+
+main.py game loop
+
+Script generator (scripts.py)
+
+Talent/actor generator (actors.py)
+
+Movie production simulation (studio.py)
+
+Goals:
+
+Run a basic loop that generates a script, picks an actor, combines into a movie, and prints a result.
+
+PHASE 2: Expand Production System
+Add deeper logic to movies and simulation outputs.
+
+New Systems:
+
+Movie quality based on cast compatibility, budget, and genre
+
+Random production events (delays, on-set problems)
+
+Fame/reputation of studio
+
+Goals:
+
+Simulate different outcomes with repeatable logic
+
+Provide meaningful trade-offs
+
+PHASE 3: Time & Release System
+Introduce weeks or months to simulate a full year.
+
+New Systems:
+
+Game calendar system (e.g., 12-month loop)
+
+Release windows and market competition
+
+Box office result calculation (using genre popularity)
+
+Goals:
+
+Schedule movie releases
+
+Compete against AI/random rival releases
+
+PHASE 4: Studio Management
+Introduce financial pressure and strategic planning.
+
+New Systems:
+
+Bank account / cash balance
+
+Movie costs vs. earnings
+
+Hiring additional staff (producers, marketers)
+
+Monthly reports
+
+Goals:
+
+Track profits/losses
+
+Make success sustainable
+
+PHASE 5: Polishing + Random Events
+Add narrative depth and replayability.
+
+New Systems:
+
+Scandals, talent burnout, rival sabotage
+
+Genre trend shifts over time
+
+Awards season (bonus prestige)
+
+Goals:
+
+Add flavour and unpredictability
+
+Introduce risk/reward situations
+
+BONUS PHASE: GUI / Visualization
+Optional — add a minimal visual interface later.
+
+Options:
+
+Use tkinter or PyQt for desktop UI
+
+Use textual or rich for advanced terminal views (like tables, charts)
+
+Or create a web-based UI using Flask or Remi
