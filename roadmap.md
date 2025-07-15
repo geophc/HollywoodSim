@@ -49,7 +49,7 @@ A structured, modular plan for building out the minimalist, text-driven Hollywoo
 ---
 
 ## ⚠️ PHASE 4: Studio Class Expansion  
-**Status:** In Progress
+**Status:** Completed
 
 **Focus:** Consolidate state and add structural clarity.
 
@@ -63,16 +63,19 @@ A structured, modular plan for building out the minimalist, text-driven Hollywoo
 ---
 
 ## ⏳ PHASE 5: Strategic Depth  
-**Status:** Upcoming
+**Status:** UpIn Progress
 
 **Focus:** Give players choices and influence over strategy.
 
 **Planned Systems:**
-- Present 2-3 scripts or actors each month for selection
-- Genre popularity trends and seasonal shifts
-- Actor loyalty/fatigue
-- Multiple production slots
-
+- Offer player 2–3 script or actor choices each month
+- Budget class and genre shown before production
+- Add script tags ("Sequel", "Oscar Bait", "Controversial")
+- Genre popularity and seasonal trends that rise and fall
+- Basic trend forecast each quarter to help plan ahead
+- Multiple production slots: player can manage more than one film at once
+- Allow the player to choose release dates (e.g., summer, awards season)
+- Allow player to delay or cancel productions (with penalties)
 ---
 
 ## ✨ PHASE 6: Narrative & Events  
@@ -85,8 +88,22 @@ A structured, modular plan for building out the minimalist, text-driven Hollywoo
 - Awards season + prestige points
 - Actor conflicts, critical reception, rival studios (abstracted)
 - Modifiers for reputation, press, genre timing
+- Recurring characters: actors can develop careers over time
+- Critics: reviews can boost or tank earnings
 
 ---
+
+## ✨ PHASE 7: Studio Progression & Reputation
+**Status:** Future Phase
+
+**Focus:** Introduce long-term studio growth and prestige.
+
+**Planned Systems:**
+- Reputation meter based on quality, success, critical reception
+- Unlock better scripts, actors, and marketing tools at higher rep
+- Studio upgrades (e.g., genre specialization, budget boosts)
+- Investor events and offers (risk/reward trade-offs)
+- Annual reports and rankings
 
 ## 🗄️ BONUS PHASE: Interface & Polish
 **Optional: For usability or future expansion**

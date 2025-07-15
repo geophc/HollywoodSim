@@ -1,11 +1,13 @@
-## 🎬 HollywoodSim
+# 🎬 HollywoodSim
 
-A minimalist, turn-based Hollywood studio simulator built in Python. Inspired by classics like *The Movies* and *Hollywood Mogul*, this game focuses on strategic planning, actor selection, and box office success — all with a clean, text-based interface.
-
+A minimalist, turn-based Hollywood studio simulator built in Python.  
+Inspired by classics like *The Movies*, *Hollywood Mogul*, and *Total Extreme Wrestling*, it focuses on strategic planning, actor selection, movie production, and box office success — all with a clean, text-based interface.
 
 ---
 
 ## 🚀 Current Features
+
+These reflect the foundation of a playable simulation:
 
 - ✅ Monthly game calendar and time progression
 - ✅ Procedural generation of movie scripts and actors
@@ -14,6 +16,17 @@ A minimalist, turn-based Hollywood studio simulator built in Python. Inspired by
 - ✅ Box office revenue simulation based on movie quality and actor fame
 - ✅ Studio cash balance and production cost tracking
 - ✅ Soft bankruptcy logic (blocks production if underfunded)
+
+---
+
+## 🧠 Simulation Highlights
+
+Additional features not listed in the main roadmap:
+
+- 🎭 **Prestige System** – Earn prestige when movies rated 80+ are released  
+- 📉 **Monthly Expenses** – Regular studio operating costs scale with studio activity  
+- 📊 **Detailed Logs** – Track production decisions, finances, and performance each month  
+- 🏁 **End-of-Year Report** – Final prestige and cash balance give a studio performance snapshot  
 
 ---
 
