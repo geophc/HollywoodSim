@@ -1,30 +1,36 @@
 # game/calendar.py
-# game/calendar.py
+import random
+
+GENRES = ["Action", "Comedy", "Drama", "Romance", "Sci-Fi", "Horror", "Thriller"]
 
 class GameCalendar:
     def __init__(self):
-        self.month = 1
         self.year = 2025
+        self.month = 1
+        self.trending_genres = self.new_trends()
+        self.forecast_genres = self.generate_forecast()
 
     def advance(self):
-        """Advance to the next month. Roll over to next year if needed."""
         self.month += 1
         if self.month > 12:
             self.month = 1
             self.year += 1
 
+        if self.month % 3 == 1:  # New quarter
+            self.trending_genres = self.forecast_genres
+            self.forecast_genres = self.generate_forecast()
+
+    def new_trends(self):
+        return random.sample(GENRES, k=2)  # Pick 2 trending genres
+
     def display(self):
-        """Return a human-readable version of the current date."""
-        months = [
+        return f"{self.month_name()} {self.year}"
+
+    def month_name(self):
+        return [
             "January", "February", "March", "April", "May", "June",
             "July", "August", "September", "October", "November", "December"
-        ]
-        return f"{months[self.month - 1]} {self.year}"
-
-    def current_date(self):
-        """Return the current date as a tuple: (year, month)"""
-        return (self.year, self.month)
-
-    def matches(self, date_tuple):
-        """Check if a (year, month) tuple matches the current date."""
-        return self.current_date() == date_tuple
+        ][self.month - 1]
+    
+    def generate_forecast(self):
+        return random.sample(GENRES, k=2)

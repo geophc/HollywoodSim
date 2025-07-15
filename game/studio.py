@@ -6,8 +6,9 @@ class Studio:
         self.balance = starting_balance  # in millions
         self.scheduled_movies = []
         self.released_movies = []
+        self.prestige = 0  # new attribute for future phase
 
-    def produce_movie(self, script, actor, calendar):
+    def produce_movie(self, script, actor, calendar, months_ahead=1):
         """
         Combines a script and actor into a movie, deducts cost, and schedules it.
         """
@@ -25,11 +26,11 @@ class Studio:
 
         self.balance -= production_cost
 
-        # Schedule for next month
-        release_month = calendar.month + 1
+        # Schedule for X months ahead
+        release_month = calendar.month + months_ahead
         release_year = calendar.year
         if release_month > 12:
-            release_month = 1
+            release_month -= 12
             release_year += 1
 
         release_date = (release_year, release_month)
@@ -57,28 +58,42 @@ class Studio:
 
         for movie in self.scheduled_movies:
             if (calendar.year, calendar.month) == movie["release_date"]:
-                movie["box_office"] = self.simulate_box_office(movie)
+                movie["box_office"] = self.simulate_box_office(movie, trending_genres=calendar.trending_genres)
                 self.balance += movie["box_office"]
                 self.released_movies.append(movie)
                 released.append(movie)
+                # Optional prestige mechanic based on quality
+                if movie["quality"] >= 75:
+                    self.prestige += 1
             else:
                 remaining.append(movie)
 
         self.scheduled_movies = remaining
         return released
 
-    def simulate_box_office(self, movie):
-        """
-        Calculates movie earnings based on quality, fame, and randomness.
+    def simulate_box_office(self, movie, trending_genres=None):
+
+        """ 
+        Simulates box office earnings based on quality, fame, and genre trends.
         """
         base = movie["quality"] * 0.8
         fame = movie["cast"]["fame"] * 0.5
         random_bonus = random.randint(0, 30)
-        earnings = round(base + fame + random_bonus, 2)
+        genre_bonus = 10 if trending_genres and movie["genre"] in trending_genres else 0
+        earnings = round(base + fame + random_bonus + genre_bonus, 2)
         return earnings
-
+    
     def is_bankrupt(self):
         """
         Returns True if the studio's balance is below zero.
         """
         return self.balance < 0
+
+    def expenses(self):
+        """
+        Calculates monthly operating costs.
+        Expandable later to include dynamic costs.
+        """
+        base_expense = 5.0
+        staff_expense = len(self.released_movies) * 0.2
+        return round(base_expense + staff_expense, 2)
