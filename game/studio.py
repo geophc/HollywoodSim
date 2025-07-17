@@ -1,7 +1,9 @@
 import random
+from actors import generate_actor
+from calendar import GameCalendar
 
 class Studio:
-    def __init__(self, name="Player Studio", starting_balance=100.0):
+    def __init__(self, name="Player Studio", starting_balance=100.0, year=2025):
         self.name = name
         self.balance = starting_balance  # in millions
         self.scheduled_movies = []
@@ -11,6 +13,10 @@ class Studio:
         self.total_expenses = 0.0
         self.highest_grossing = None
         self.newsfeed = []  # stores recent news headlines
+        self.actor_pool = [generate_actor(year) for _ in range(15)]  # Start with 15 random actors
+        self.known_actors = []  # Optional: track actors you've worked with
+
+
       
 
     def produce_movie(self, script, actor, calendar, months_ahead=1):

@@ -1,21 +1,26 @@
+import random
+
 from scripts import generate_script
 from actors import generate_actor
 from studio import Studio
 from calendar import GameCalendar
 
 def main():
+    # Initialize game calendar and studio
     calendar = GameCalendar()
-    studio = Studio()
-
+    studio = Studio(year=calendar.year)
+    
     print("🎬 Welcome to HollywoodSim!")
 
+    # Main game loop: Simulate 12 months
     for _ in range(12):  # Simulate 12 months
+        # Display current game state
         print(f"📅 Current Date: {calendar.display()}")
         print(f"🔥 Trending Genres: {', '.join(calendar.trending_genres)}")
         print(f"🔮 Next Quarter Forecast: {', '.join(calendar.forecast_genres)}")
         print(f"🏦 Balance: ${studio.balance:.2f}M | 👑 Prestige: {studio.prestige}")
 
-
+        # Bankruptcy check
         if studio.is_bankrupt():
             print("💀 Your studio is bankrupt! You can no longer produce films.")
             print("🧾 Consider releasing existing movies to earn money...")
@@ -36,7 +41,7 @@ def main():
             script = scripts[int(choice) - 1]
 
             # Offer player a choice of 3 actors
-            actors = [generate_actor(calendar.year)for _ in range(3)]
+            actors = random.sample(studio.actor_pool, 3)
             print("\n🎬 Choose a lead actor:")
             for i, a in enumerate(actors, 1):
                 tag_str = ', '.join(a['tags'])
@@ -65,7 +70,7 @@ def main():
                 y, m = movie["release_date"]
                 print(f"🗓️  Scheduled: {movie['title']} ({movie['genre']}, {movie['budget_class']}) "
                       f"with {actor['name']} — releasing {m}/{y} (Cost: ${movie['cost']}M)")
-                # Optional: print synergy tag match
+                # Show synergy bonus if any
                 matching_tags = set(script['tags']) & set(actor['tags'])
                 if matching_tags:
                     print(f"✨ Tag synergy bonus! Matching tags: {', '.join(matching_tags)}")
@@ -81,7 +86,6 @@ def main():
             score, review = studio.generate_review(movie)
             print(f"📝 Critics Score: {score}/100 — {review}")
 
-
         # 💀 Hard bankruptcy: no money and no films coming
         if studio.is_bankrupt() and not studio.scheduled_movies:
             print("☠️  Your studio is bankrupt and has no upcoming films.")
@@ -93,6 +97,7 @@ def main():
         expense = studio.expenses()
         studio.balance -= expense["total"]
 
+        # Show expense breakdown
         base = 5.0
         staff = len(studio.released_movies) * 0.2
         in_production = len(studio.scheduled_movies) * 1.0
@@ -105,6 +110,7 @@ def main():
         print(f"   - Prestige: ${prestige_cost:.2f}M")
         print(f"   = Total: ${expense['total']:.2f}M")
 
+        # Show recent news
         if studio.newsfeed:
             print("\n📰 Hollywood News:")
             for story in studio.newsfeed[-3:]:  # show most recent 3
@@ -113,6 +119,7 @@ def main():
         # Advance the calendar
         calendar.advance()
 
+    # --- End of year summary ---
     print(f"\n🏁 Final Balance: ${studio.balance:.2f}M")
 
     # Collect unique actors from released movies
@@ -124,10 +131,7 @@ def main():
             used_actors.append(actor)
             seen_names.add(actor["name"])
 
-
-    """
-        Simulates box office earnings based on movie quality and genre trends.
-    """
+    # --- Studio summary ---
     print("\n📊 Studio Summary:")
     print(f"🎬 Films Released: {len(studio.released_movies)}")
     print(f"💵 Total Earnings: ${studio.total_earnings:.2f}M")
@@ -139,6 +143,8 @@ def main():
 
     print(f"\n🏁 Final Balance: ${studio.balance:.2f}M")
 
+
+    # --- Actor career recap ---
     print("\n🎭 Actor Career Recap:")
     for actor in used_actors:
         films = actor["film_history"]
@@ -147,13 +153,14 @@ def main():
         avg_quality = sum(f["quality"] for f in films) / len(films)
         avg_box_office = sum(f["box_office"] for f in films) / len(films)
 
-    print(f"\n🧑 {actor['name']} — Age: {actor['age']} | Debut: {actor['debut_year']}")
-    print(f"🎬 Films: {len(films)} | Avg Quality: {avg_quality:.1f} | Avg Box Office: ${avg_box_office:.1f}M")
+        print(f"\n🧑 {actor['name']} — Age: {actor['age']} | Debut: {actor['debut_year']}")
+        print(f"🎬 Films: {len(films)} | Avg Quality: {avg_quality:.1f} | Avg Box Office: ${avg_box_office:.1f}M")
 
-    for f in films:
-        print(f"   - {f['title']} ({f['year']}/{f['month']}), {f['genre']}, Quality: {f['quality']}, Box Office: ${f['box_office']}M")
+        for f in films:
+            print(f"   🎬 {f['title']} ({f['year']}) - Quality: {f['quality']}, Earnings: ${f['box_office']}M")
 
 
+    # --- End game message ---
     if studio.is_bankrupt():
         print("☠️  You ended in bankruptcy. Try again with better budgeting!")
     else:
