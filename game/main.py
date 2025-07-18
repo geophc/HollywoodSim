@@ -4,12 +4,26 @@ from scripts import generate_script
 from actors import generate_actor
 from studio import Studio
 from calendar import GameCalendar
+from casting import CastingPool
+
 
 def main():
     # Initialize game calendar and studio
     calendar = GameCalendar()
+    casting_pool = CastingPool()
     studio = Studio(year=calendar.year)
-    
+
+    # Populate the casting pool with actors
+    for _ in range(30):
+        casting_pool.add_actor(generate_actor(calendar.year))
+
+    # Now you can safely get actors from the casting pool
+    actors = casting_pool.get_actor_choices(3)
+    print("\n🎬 Choose a lead actor:")
+    for i, a in enumerate(actors, 1):
+        tag_str = ', '.join(a['tags'])
+        print(f"{i}. {a['name']} — Fame: {a['fame']} | Salary: ${a['salary']}M [{tag_str}]")
+
     print("🎬 Welcome to HollywoodSim!")
 
     # Main game loop: Simulate 12 months
@@ -41,11 +55,12 @@ def main():
             script = scripts[int(choice) - 1]
 
             # Offer player a choice of 3 actors
-            actors = random.sample(studio.actor_pool, 3)
+            actors = casting_pool.get_actor_choices(3)
             print("\n🎬 Choose a lead actor:")
             for i, a in enumerate(actors, 1):
                 tag_str = ', '.join(a['tags'])
                 print(f"{i}. {a['name']} — Fame: {a['fame']} | Salary: ${a['salary']}M [{tag_str}]")
+
 
 
             actor_choice = input("Enter number (1–3): ").strip()
@@ -127,9 +142,9 @@ def main():
     seen_names = set()
     for movie in studio.released_movies:
         actor = movie["cast"]
-        if actor["name"] not in seen_names:
+        if actor['name'] not in seen_names:
             used_actors.append(actor)
-            seen_names.add(actor["name"])
+            seen_names.add(actor['name'])
 
     # --- Studio summary ---
     print("\n📊 Studio Summary:")
