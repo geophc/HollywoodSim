@@ -20,13 +20,6 @@ def main():
     for _ in range(30):
         casting_pool.add_actor(generate_actor(calendar.year))
 
-    # Now you can safely get actors from the casting pool
-    actors = casting_pool.get_actor_choices(3)
-    print("\n🎬 Choose a lead actor:")
-    for i, a in enumerate(actors, 1):
-        tag_str = ', '.join(a['tags'])
-        print(f"{i}. {a['name']} — Fame: {a['fame']} | Salary: ${a['salary']}M [{tag_str}]")
-
     print("🎬 Welcome to HollywoodSim!")
 
     # Main game loop: Simulate 12 months
@@ -72,56 +65,22 @@ def main():
             print(f"{i}. {a['name']} — Fame: {a['fame']} | Salary: ${a['salary']}M [{tag_str}] | {history_note}")
 
 
+        actor_choice = input("Enter number (1–3): ").strip()
+        while actor_choice not in ["1", "2", "3"]:
+            actor_choice = input("Invalid choice. Enter 1, 2, or 3: ").strip()
 
-            actor_choice = input("Enter number (1–3): ").strip()
-            while actor_choice not in ["1", "2", "3"]:
-                actor_choice = input("Invalid choice. Enter 1, 2, or 3: ").strip()
+        actor = actors[int(actor_choice) - 1]
 
-            actor = actors[int(actor_choice) - 1]
+        # Ask player for release window
+        print("\n📆 Choose a release window (1–6 months from now):")
+        months_ahead = input("Enter number of months (default = 1): ").strip()
 
-            # Ask player for release window
-            print("\n📆 Choose a release window (1–6 months from now):")
-            months_ahead = input("Enter number of months (default = 1): ").strip()
-
-            if not months_ahead.isdigit():
-                months_ahead = 1
-            else:
-                months_ahead = max(1, min(int(months_ahead), 6))  # clamp to 1–6
+        if not months_ahead.isdigit():
+            months_ahead = 1
+        else:
+            months_ahead = max(1, min(int(months_ahead), 6))  # clamp to 1–6
         
-            # Produce the movie
-            movie = studio.produce_movie(script, actor, calendar, months_ahead)
-
-            if movie:
-                y, m = movie["release_date"]
-                print(f"🗓️  Scheduled: {movie['title']} ({movie['genre']}, {movie['budget_class']}) "
-                      f"with {actor['name']} — releasing {m}/{y} (Cost: ${movie['cost']}M)")
-                # Show synergy bonus if any
-                matching_tags = set(script['tags']) & set(actor['tags'])
-                if matching_tags:
-                    print(f"✨ Tag synergy bonus! Matching tags: {', '.join(matching_tags)}")
-
-            else:
-                print("⚠️ Skipped production due to insufficient funds.")
-
-        # Release any scheduled movies
-        released_movies = studio.check_for_releases(calendar)
-        
-
-
-        for movie in released_movies:
-            print(f"💥 Released: {movie['title']} | Earnings: ${movie['box_office']}M | Quality: {movie['quality']}")
-            actor = movie["cast"]["name"]
-            casting_manager.record_collaboration(actor, movie["quality"], movie["box_office"])
-            score, review = studio.generate_review(movie)
-            print(f"📝 Critics Score: {score}/100 — {review}")
-
-        # 💀 Hard bankruptcy: no money and no films coming
-        if studio.is_bankrupt() and not studio.scheduled_movies:
-            print("☠️  Your studio is bankrupt and has no upcoming films.")
-            print("💥 GAME OVER.")
-            break
-
-        # Monthly expenses
+   # Monthly expenses
         # Calculate and deduct expenses
         expense = studio.expenses()
         studio.balance -= expense["total"]
@@ -138,6 +97,41 @@ def main():
         print(f"   - In-Production: ${in_production:.2f}M")
         print(f"   - Prestige: ${prestige_cost:.2f}M")
         print(f"   = Total: ${expense['total']:.2f}M")
+
+
+        # Produce the movie
+        movie = studio.produce_movie(script, actor, calendar, months_ahead)
+
+        if movie:
+            y, m = movie["release_date"]
+            print(f"🗓️  Scheduled: {movie['title']} ({movie['genre']}, {movie['budget_class']}) "
+                      f"with {actor['name']} — releasing {m}/{y} (Cost: ${movie['cost']}M)")
+            # Show synergy bonus if any
+            matching_tags = set(script['tags']) & set(actor['tags'])
+            if matching_tags:
+                print(f"✨ Tag synergy bonus! Matching tags: {', '.join(matching_tags)}")
+
+        else:
+            print("⚠️ Skipped production due to insufficient funds.")
+
+        # Release any scheduled movies
+        released_movies = studio.check_for_releases(calendar)
+       
+        for movie in released_movies:
+            print(f"💥 Released: {movie['title']} | Earnings: ${movie['box_office']}M | Quality: {movie['quality']}")
+            actor = movie["cast"]
+            casting_manager.record_collaboration(actor, movie)
+
+            score, review = studio.generate_review(movie)
+            print(f"📝 Critics Score: {score}/100 — {review}")
+
+        # 💀 Hard bankruptcy: no money and no films coming
+        if studio.is_bankrupt() and not studio.scheduled_movies:
+            print("☠️  Your studio is bankrupt and has no upcoming films.")
+            print("💥 GAME OVER.")
+            break
+
+     
 
         # Show recent news
         if studio.newsfeed:
