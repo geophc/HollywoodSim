@@ -5,6 +5,8 @@ from actors import generate_actor
 from studio import Studio
 from calendar import GameCalendar
 from casting import CastingPool
+from casting import CastingManager
+
 
 
 def main():
@@ -12,6 +14,7 @@ def main():
     calendar = GameCalendar()
     casting_pool = CastingPool()
     studio = Studio(year=calendar.year)
+    casting_manager = CastingManager()
 
     # Populate the casting pool with actors
     for _ in range(30):
@@ -57,9 +60,16 @@ def main():
             # Offer player a choice of 3 actors
             actors = casting_pool.get_actor_choices(3)
             print("\n🎬 Choose a lead actor:")
-            for i, a in enumerate(actors, 1):
-                tag_str = ', '.join(a['tags'])
-                print(f"{i}. {a['name']} — Fame: {a['fame']} | Salary: ${a['salary']}M [{tag_str}]")
+
+        for i, a in enumerate(actors, 1):
+            memory = casting_manager.get_history(a["name"])
+            if memory:
+                history_note = f"🎞️  Past: {memory['count']}x | Avg Q: {memory['avg_quality']} | Box: ${memory['avg_box_office']}M"
+            else:
+                history_note = "🆕 No history"
+
+            tag_str = ', '.join(a['tags'])
+            print(f"{i}. {a['name']} — Fame: {a['fame']} | Salary: ${a['salary']}M [{tag_str}] | {history_note}")
 
 
 
@@ -96,8 +106,12 @@ def main():
         # Release any scheduled movies
         released_movies = studio.check_for_releases(calendar)
         
+
+
         for movie in released_movies:
             print(f"💥 Released: {movie['title']} | Earnings: ${movie['box_office']}M | Quality: {movie['quality']}")
+            actor = movie["cast"]["name"]
+            casting_manager.record_collaboration(actor, movie["quality"], movie["box_office"])
             score, review = studio.generate_review(movie)
             print(f"📝 Critics Score: {score}/100 — {review}")
 
