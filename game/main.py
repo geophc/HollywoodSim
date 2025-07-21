@@ -46,13 +46,21 @@ def main():
             print("\n🎥 Production Phase:")
                         
             # 1. Offer player a choice of 3 scripts
-            scripts = [generate_script() for _ in range(3)]
+            from writers import generate_writer
+
+            scripts = []
+            for _ in range(3):
+                writer = generate_writer()
+                script = generate_script(writer=writer)
+                scripts.append(script)
+
             print("\n📜 Choose a script to produce:")
             for i, s in enumerate(scripts, 1):
-                tags = ', '.join(s['tags'])
                 writer = s['writer']
+                tags = ', '.join(s['tags'])
                 print(f"{i}. {s['title']} ({s['genre']}, {s['budget_class']}, Appeal: {s['appeal']}) [{tags}]")
-                print(f"   ✍️  Written by {writer['name']} ({writer['specialty']}, {writer['education']})")
+                print(f"   ✍️  Writer: {writer['name']} | Specialty: {writer['specialty']} |"
+                      f"Interests: {', '.join(writer['interests'])} | Schooling: {writer['education']}")
 
 
             choice = input("Enter number (1–3): ").strip()
@@ -117,6 +125,9 @@ def main():
 
             score, review = studio.generate_review(movie)
             print(f"📝 Critics Score: {score}/100 — {review}")
+            writer = movie["writer"]["name"] if "writer" in movie else "Unknown"
+            print(f"   ✍️ Written by: {writer}")
+
        
 
         # 💀 Hard bankruptcy: no money and no films coming
