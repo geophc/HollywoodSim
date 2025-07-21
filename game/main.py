@@ -29,19 +29,30 @@ def main():
         print(f"🔥 Trending Genres: {', '.join(calendar.trending_genres)}")
         print(f"🔮 Next Quarter Forecast: {', '.join(calendar.forecast_genres)}")
         print(f"🏦 Balance: ${studio.balance:.2f}M | 👑 Prestige: {studio.prestige}")
-
+        print(f"🎭 Actors: {len(casting_pool.actors)} | Writers: {len(casting_pool.writers)}")
+        print(f"🎥 Movies in Production: {len(studio.scheduled_movies)} | Released: {len(studio.released_movies)}")
+        print(f"💰 Total Earnings: ${studio.total_earnings:.2f}M | Total Expenses: ${studio.total_expenses:.2f}M")
+        print(f"🏆 Highest Grossing: {studio.highest_grossing['title'] if studio.highest_grossing else 'N/A'}")
         # Bankruptcy check
         if studio.is_bankrupt():
             print("💀 Your studio is bankrupt! You can no longer produce films.")
             print("🧾 Consider releasing existing movies to earn money...")
         else:
-            # Generate and try to produce a movie
-            # Offer player a choice of 3 scripts
+
+
+            # --- Monthly phases ---
+
+            # Production phase
+            print("\n🎥 Production Phase:")
+                        
+            # 1. Offer player a choice of 3 scripts
             scripts = [generate_script() for _ in range(3)]
             print("\n📜 Choose a script to produce:")
             for i, s in enumerate(scripts, 1):
                 tags = ', '.join(s['tags'])
+                writer = s['writer']
                 print(f"{i}. {s['title']} ({s['genre']}, {s['budget_class']}, Appeal: {s['appeal']}) [{tags}]")
+                print(f"   ✍️  Written by {writer['name']} ({writer['specialty']}, {writer['education']})")
 
 
             choice = input("Enter number (1–3): ").strip()
@@ -50,7 +61,7 @@ def main():
 
             script = scripts[int(choice) - 1]
 
-            # Offer player a choice of 3 actors
+            # 2. Offer player a choice of 3 actors
             actors = casting_pool.get_actor_choices(3)
             print("\n🎬 Choose a lead actor:")
 
@@ -71,7 +82,7 @@ def main():
 
         actor = actors[int(actor_choice) - 1]
 
-        # Ask player for release window
+        # 3. Ask player for release window
         print("\n📆 Choose a release window (1–6 months from now):")
         months_ahead = input("Enter number of months (default = 1): ").strip()
 
@@ -80,26 +91,8 @@ def main():
         else:
             months_ahead = max(1, min(int(months_ahead), 6))  # clamp to 1–6
         
-   # Monthly expenses
-        # Calculate and deduct expenses
-        expense = studio.expenses()
-        studio.balance -= expense["total"]
-
-        # Show expense breakdown
-        base = 5.0
-        staff = len(studio.released_movies) * 0.2
-        in_production = len(studio.scheduled_movies) * 1.0
-        prestige_cost = studio.prestige * 0.1
-
-        print(f"💸 Monthly Expenses:")
-        print(f"   - Base: $5.0M")
-        print(f"   - Staff: ${staff:.2f}M")
-        print(f"   - In-Production: ${in_production:.2f}M")
-        print(f"   - Prestige: ${prestige_cost:.2f}M")
-        print(f"   = Total: ${expense['total']:.2f}M")
-
-
-        # Produce the movie
+   
+        # 4. Produce the movie
         movie = studio.produce_movie(script, actor, calendar, months_ahead)
 
         if movie:
@@ -124,20 +117,37 @@ def main():
 
             score, review = studio.generate_review(movie)
             print(f"📝 Critics Score: {score}/100 — {review}")
+       
 
         # 💀 Hard bankruptcy: no money and no films coming
         if studio.is_bankrupt() and not studio.scheduled_movies:
             print("☠️  Your studio is bankrupt and has no upcoming films.")
             print("💥 GAME OVER.")
             break
-
      
-
         # Show recent news
         if studio.newsfeed:
             print("\n📰 Hollywood News:")
             for story in studio.newsfeed[-3:]:  # show most recent 3
                 print(f"• {story}")
+
+        # Monthly expenses
+        # Calculate and deduct expenses
+        expense = studio.expenses()
+        studio.balance -= expense["total"]
+
+        # Show expense breakdown
+        base = 5.0
+        staff = len(studio.released_movies) * 0.2
+        in_production = len(studio.scheduled_movies) * 1.0
+        prestige_cost = studio.prestige * 0.1
+
+        print(f"💸 Monthly Expenses:")
+        print(f"   - Base: $5.0M")
+        print(f"   - Staff: ${staff:.2f}M")
+        print(f"   - In-Production: ${in_production:.2f}M")
+        print(f"   - Prestige: ${prestige_cost:.2f}M")
+        print(f"   = Total: ${expense['total']:.2f}M")
 
         # Advance the calendar
         calendar.advance()
