@@ -36,7 +36,7 @@ class Studio:
         quality = round(min(100, max(10, quality + tag_bonus)))
 
         # Calculate production cost
-        budget_multiplier = {"Low": 10, "Mid": 30, "Blockbuster": 60}
+        budget_multiplier = {"Low": 10, "Mid": 30, "High": 60}
         production_cost = budget_multiplier[script["budget_class"]] + actor["salary"]
 
         if self.balance < production_cost:
