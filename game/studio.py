@@ -9,6 +9,7 @@ class Studio:
         self.scheduled_movies = []
         self.released_movies = []
         self.prestige = 0  # new attribute for future phase
+        self.reputation = 0  # new attribute for future phase              
         self.total_earnings = 0.0
         self.total_expenses = 0.0
         self.highest_grossing = None
