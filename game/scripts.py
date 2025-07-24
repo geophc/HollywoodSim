@@ -22,6 +22,10 @@ def generate_script(current_year=2025, writer=None, director=None):
     # --- Base quality ---
     base_quality = random.randint(50, 70)
 
+    pop = calendar.genre_popularity.get(genre, 50)
+    appeal += (pop - 50) * 0.05  # e.g. +10 pop = +0.5 appeal
+
+
     # If writer is assigned, apply bonuses
     if writer:
         # 🎯 Genre match

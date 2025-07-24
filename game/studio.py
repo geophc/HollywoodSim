@@ -149,6 +149,7 @@ class Studio:
         base = movie["quality"] * 0.8
         fame = movie["cast"]["fame"] * 0.5
         random_bonus = round(random.gauss(10, 5), 2)  # average 10, std dev 5
+        bonus_pct = seasonal_bonus(movie["genre"], calendar.month)
         if random_bonus < 0:
             random_bonus = 0
         # Genre trend bonus
@@ -156,7 +157,8 @@ class Studio:
             genre_bonus = 10
         else:  
             genre_bonus = 0
-        earnings = round(base + fame + random_bonus + genre_bonus, 2)
+
+        earnings = round((base + fame + random_bonus) * (1 + bonus_pct), 2)
         return earnings                        
             
     def is_bankrupt(self):
