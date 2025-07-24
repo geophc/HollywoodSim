@@ -30,6 +30,7 @@ def generate_writer(current_year=2025):
     fame = random.randint(10, 70)
     age = random.randint(28, 55)
     debut_year = current_year - random.randint(0, age - 22)
+   
 
     return {
         "name": name,

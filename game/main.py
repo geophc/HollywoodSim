@@ -2,6 +2,8 @@ import random
 
 from scripts import generate_script
 from actors import generate_actor
+from writers import generate_writer
+from directors import generate_director
 from studio import Studio
 from calendar import GameCalendar
 from casting import CastingPool
@@ -19,7 +21,14 @@ def main():
     # Populate the casting pool with actors
     for _ in range(30):
         casting_pool.add_actor(generate_actor(calendar.year))
+    # Populate the casting pool with writers
+    for _ in range(10):
+        casting_pool.add_writer(generate_writer(calendar.year))
 
+    # Populate the casting pool with directors
+    for _ in range(5):
+        casting_pool.add_director(generate_director(calendar.year))
+      
     print("🎬 Welcome to HollywoodSim!")
 
     # Main game loop: Simulate 12 months
@@ -43,33 +52,50 @@ def main():
             # --- Monthly phases ---
 
             # Production phase
+                                
             print("\n🎥 Production Phase:")
-                        
-            # 1. Offer player a choice of 3 scripts
-            from writers import generate_writer
 
+            # 1. Generate a list of 3 writers
+            writers = casting_pool.get_writer_choices(3)
+
+            # 2. Each writer generates one script
             scripts = []
-            for _ in range(3):
-                writer = generate_writer()
+            for writer in writers:
                 script = generate_script(writer=writer)
                 scripts.append(script)
 
+            # 3. Present scripts to player
             print("\n📜 Choose a script to produce:")
             for i, s in enumerate(scripts, 1):
                 writer = s['writer']
                 tags = ', '.join(s['tags'])
                 print(f"{i}. {s['title']} ({s['genre']}, {s['budget_class']}, Appeal: {s['appeal']}) [{tags}]")
-                print(f"   ✍️  Writer: {writer['name']} | Specialty: {writer['specialty']} |"
-                      f"Interests: {', '.join(writer['interests'])} | Schooling: {writer['education']}")
+                print(f"   ✍️  Writer: {writer['name']} | Specialty: {writer['specialty']} | "
+                    f"Interests: {', '.join(writer['interests'])} | Schooling: {writer['education']}")
 
-
+            # 4. Let player choose a script
             choice = input("Enter number (1–3): ").strip()
             while choice not in ["1", "2", "3"]:
                 choice = input("Invalid choice. Enter 1, 2, or 3: ").strip()
 
             script = scripts[int(choice) - 1]
 
-            # 2. Offer player a choice of 3 actors
+            # 5. Offer player a choice of 3 directors
+            print("\n🎬 Choose a director:")
+            directors = casting_pool.get_director_choices(3)
+
+            for i, d in enumerate(directors, 1):
+                tags = ', '.join(d['style_tags'])
+            print(f"{i}. {d['name']} — Genre: {d['genre_focus']} | Education: {d['education']} | Style: {tags}")
+
+            choice = input("Enter number (1–3): ").strip()
+            while choice not in ["1", "2", "3"]:
+                choice = input("Invalid choice. Enter 1, 2, or 3: ").strip()
+
+            director = directors[int(choice) - 1]
+
+
+            # 6. Offer player a choice of 3 actors
             actors = casting_pool.get_actor_choices(3)
             print("\n🎬 Choose a lead actor:")
 
@@ -84,13 +110,13 @@ def main():
             print(f"{i}. {a['name']} — Fame: {a['fame']} | Salary: ${a['salary']}M [{tag_str}] | {history_note}")
 
 
-        actor_choice = input("Enter number (1–3): ").strip()
-        while actor_choice not in ["1", "2", "3"]:
-            actor_choice = input("Invalid choice. Enter 1, 2, or 3: ").strip()
+            actor_choice = input("Enter number (1–3): ").strip()
+            while actor_choice not in ["1", "2", "3"]:
+                actor_choice = input("Invalid choice. Enter 1, 2, or 3: ").strip()
 
-        actor = actors[int(actor_choice) - 1]
+            actor = actors[int(actor_choice) - 1]
 
-        # 3. Ask player for release window
+        # 7. Ask player for release window
         print("\n📆 Choose a release window (1–6 months from now):")
         months_ahead = input("Enter number of months (default = 1): ").strip()
 
@@ -100,8 +126,8 @@ def main():
             months_ahead = max(1, min(int(months_ahead), 6))  # clamp to 1–6
         
    
-        # 4. Produce the movie
-        movie = studio.produce_movie(script, actor, calendar, months_ahead)
+        # 8. Produce the movie
+        movie = studio.produce_movie(script, actor, director, calendar, months_ahead)
 
         if movie:
             y, m = movie["release_date"]
@@ -148,13 +174,13 @@ def main():
         studio.balance -= expense["total"]
 
         # Show expense breakdown
-        base = 5.0
+        base = 15.0
         staff = len(studio.released_movies) * 0.2
         in_production = len(studio.scheduled_movies) * 1.0
         prestige_cost = studio.prestige * 0.1
 
         print(f"💸 Monthly Expenses:")
-        print(f"   - Base: $5.0M")
+        print(f"   - Base: $15.0M")
         print(f"   - Staff: ${staff:.2f}M")
         print(f"   - In-Production: ${in_production:.2f}M")
         print(f"   - Prestige: ${prestige_cost:.2f}M")
@@ -185,9 +211,7 @@ def main():
         hg = studio.highest_grossing
         print(f"🏅 Top Earner: {hg['title']} (${hg['box_office']}M, Quality: {hg['quality']})")
 
-    print(f"\n🏁 Final Balance: ${studio.balance:.2f}M")
-
-
+   
     # --- Actor career recap ---
     print("\n🎭 Actor Career Recap:")
     for actor in used_actors:
@@ -202,6 +226,15 @@ def main():
 
         for f in films:
             print(f"   🎬 {f['title']} ({f['year']}) - Quality: {f['quality']}, Earnings: ${f['box_office']}M")
+
+    # --- Writer career recap ---
+    print("\n🖋️ Writer Recap:")
+    for writer in casting_pool.writers:
+        total = len(writer["film_history"])
+        if total == 0:
+            continue
+        avg_q = sum(s["quality"] for s in writer["film_history"]) / total
+        print(f"✍️ {writer['name']} — Scripts: {total}, Avg Quality: {avg_q:.1f}")
 
 
     # --- End game message ---

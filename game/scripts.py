@@ -2,7 +2,7 @@
 
 import random
 
-def generate_script(current_year=2025, writer=None):
+def generate_script(current_year=2025, writer=None, director=None):
     titles = [
         "The Bitter End", "Quantum Hearts", "Midnight at the Arcade", "The Secret Dream",
         "Echoes of Tomorrow", "Painted Lies", "Beyond the Hollow", "Love in Low Orbit"
@@ -43,6 +43,16 @@ def generate_script(current_year=2025, writer=None):
         # Clamp to range
         quality = round(min(100, max(40, base_quality)))
 
+        # If writer has a notable script, increase quality
+        if writer:
+            writer["film_history"].append({
+                "title": title,
+                "genre": genre,
+                "budget_class": budget_class,
+                "quality": quality,
+                "year": current_year
+            })
+    
     else:
         quality = random.randint(50, 70)
 
@@ -62,6 +72,9 @@ def generate_script(current_year=2025, writer=None):
             "interests": [],
         }
 
+    
+
+
     return {
         "title": title,
         "genre": genre,
@@ -70,4 +83,5 @@ def generate_script(current_year=2025, writer=None):
         "tags": tags,
         "quality": quality,
         "writer": writer,
+        "director": director,
     }

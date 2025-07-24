@@ -14,11 +14,17 @@ class CastingPool:
     def add_writer(self, writer):
         self.writers.append(writer)
 
+    def add_director(self, director):
+        self.directors.append(director)
+
     def get_actor_choices(self, count=3):
         return random.sample(self.actors, k=min(count, len(self.actors)))
 
     def get_writer_choices(self, count=3):
         return random.sample(self.writers, k=min(count, len(self.writers)))
+
+    def get_director_choices(self, count=3):
+        return random.sample(self.directors, k=min(count, len(self.directors)))
 
     def age_all_talent(self):
         for actor in self.actors:
