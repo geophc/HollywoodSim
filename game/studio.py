@@ -16,7 +16,6 @@ class Studio:
         self.actor_pool = [generate_actor(year) for _ in range(15)]  # Start with 15 random actors
         self.known_actors = []  # Optional: track actors you've worked with
 
-
       
 
     def produce_movie(self, script, actor, director, calendar, months_ahead=1):
@@ -203,7 +202,35 @@ class Studio:
 
         return score, review
     
+    def evaluate_awards(self):
+        """
+        Selects top films for end-of-year awards based on quality.
+        Returns a dictionary of winners.
+        """
+        if not self.released_movies:
+            return {}
 
+        sorted_by_quality = sorted(self.released_movies, key=lambda m: m["quality"], reverse=True)
+        winners = {}
+
+        # You can tweak thresholds and categories later
+        winners["Best Picture"] = sorted_by_quality[0]
+
+        top_actor = max(self.released_movies, key=lambda m: m["cast"]["fame"])
+        winners["Star of the Year"] = top_actor["cast"]
+
+        # NEW: Best Director Award
+        if any("director" in m for m in self.released_movies):
+            top_director = max(
+                (m["director"] for m in self.released_movies if "director" in m),
+                key=lambda d: d["fame"],
+                default=None
+            )
+            if top_director:
+                winners["Best Director"] = top_director
+
+        # Optional: more award categories
+        return winners
         
       
     

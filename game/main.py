@@ -186,10 +186,29 @@ def main():
         print(f"   - Prestige: ${prestige_cost:.2f}M")
         print(f"   = Total: ${expense['total']:.2f}M")
 
+        if studio.newsfeed:
+            print("\n📰 Hollywood News:")
+            for story in studio.newsfeed[-3:]:  # show most recent 3
+                print(f"• {story}")
+
         # Advance the calendar
         calendar.advance()
 
     # --- End of year summary ---
+    awards = studio.evaluate_awards()
+
+    if awards:
+        print("\n🎖️ End of Year Awards:")
+        print(f"🏅 Best Picture: {awards['Best Picture']['title']} (Quality: {awards['Best Picture']['quality']})")
+        print(f"🌟 Star of the Year: {awards['Star of the Year']['name']} (Fame: {awards['Star of the Year']['fame']})")
+        director_award = awards.get("Best Director")
+        if director_award:
+            print(f"🎥 Best Director: {director_award['name']} (Fame: {director_award['fame']})")
+        else:
+            print("🎥 No Best Director award this year.")        
+    else:
+        print("\n🤷 No awards this year — better luck next time!")
+
     print(f"\n🏁 Final Balance: ${studio.balance:.2f}M")
 
     # Collect unique actors from released movies
@@ -235,6 +254,15 @@ def main():
             continue
         avg_q = sum(s["quality"] for s in writer["film_history"]) / total
         print(f"✍️ {writer['name']} — Scripts: {total}, Avg Quality: {avg_q:.1f}")
+
+    # --- Director career recap ---
+    print("\n🎬 Director Recap:")
+    for director in casting_pool.directors:
+        total = len(director["film_history"])
+        if total == 0:
+            continue
+        avg_q = sum(film["quality"] for film in director["film_history"]) / total
+        print(f"🎥 {director['name']} — Films: {total}, Avg Quality: {avg_q:.1f}")
 
 
     # --- End game message ---
