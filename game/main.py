@@ -48,7 +48,6 @@ def main():
             print("🧾 Consider releasing existing movies to earn money...")
         else:
 
-
             # --- Monthly phases ---
 
             # Production phase
@@ -61,7 +60,7 @@ def main():
             # 2. Each writer generates one script
             scripts = []
             for writer in writers:
-                script = generate_script(writer=writer)
+                script = generate_script(calendar, writer=writer)
                 scripts.append(script)
 
             # 3. Present scripts to player
@@ -69,7 +68,7 @@ def main():
             for i, s in enumerate(scripts, 1):
                 writer = s['writer']
                 tags = ', '.join(s['tags'])
-                print(f"{i}. {s['title']} ({s['genre']}, {s['budget_class']}, Appeal: {s['appeal']}) [{tags}]")
+                print(f"{i}. {s['title']} ({s['genre']}, {s['budget_class']}, Appeal: {s['appeal']}, Rated: {s['rating']}) [{tags}]")
                 print(f"   ✍️  Writer: {writer['name']} | Specialty: {writer['specialty']} | "
                     f"Interests: {', '.join(writer['interests'])} | Schooling: {writer['education']}")
 
@@ -84,13 +83,24 @@ def main():
             print("\n🎬 Choose a director:")
             directors = casting_pool.get_director_choices(3)
 
+            # Check if at least 2 directors are available
+            if len(directors) < 2:
+                print("⚠️ Not enough directors available to start production this month. Try again next turn.")
+                continue # Skips the rest of the production phase for this month
+
+            # Display the choices (Corrected loop)
             for i, d in enumerate(directors, 1):
                 tags = ', '.join(d['style_tags'])
-            print(f"{i}. {d['name']} — Genre: {d['genre_focus']} | Education: {d['education']} | Style: {tags}")
+                print(f"{i}. {d['name']} — Genre: {d['genre_focus']} | Education: {d['education']} | Style: {tags}")
 
-            choice = input("Enter number (1–3): ").strip()
-            while choice not in ["1", "2", "3"]:
-                choice = input("Invalid choice. Enter 1, 2, or 3: ").strip()
+            # Get player's choice with dynamic validation
+            num_choices = len(directors)
+            valid_choices = [str(i) for i in range(1, num_choices + 1)]
+            prompt = f"Enter number (1–{num_choices}): "
+            
+            choice = input(prompt).strip()
+            while choice not in valid_choices:
+                choice = input(f"Invalid choice. Please enter a number from 1 to {num_choices}: ").strip()
 
             director = directors[int(choice) - 1]
 
@@ -99,20 +109,30 @@ def main():
             actors = casting_pool.get_actor_choices(3)
             print("\n🎬 Choose a lead actor:")
 
-        for i, a in enumerate(actors, 1):
-            memory = casting_manager.get_history(a["name"])
-            if memory:
-                history_note = f"🎞️  Past: {memory['count']}x | Avg Q: {memory['avg_quality']} | Box: ${memory['avg_box_office']}M"
-            else:
-                history_note = "🆕 No history"
+            # Check if at least 2 actors are available
+            if len(actors) < 2:
+                print("⚠️ Not enough actors available to start production this month. Try again next turn.")
+                continue # Skips the rest of the production phase
 
-            tag_str = ', '.join(a['tags'])
-            print(f"{i}. {a['name']} — Fame: {a['fame']} | Salary: ${a['salary']}M [{tag_str}] | {history_note}")
+            # Display the choices (Corrected loop indentation)
+            for i, a in enumerate(actors, 1):
+                memory = casting_manager.get_history(a["name"])
+                if memory:
+                    history_note = f"🎞️  Past: {memory['count']}x | Avg Q: {memory['avg_quality']} | Box: ${memory['avg_box_office']}M"
+                else:
+                    history_note = "🆕 No history"
 
+                tag_str = ', '.join(a['tags'])
+                print(f"{i}. {a['name']} — Fame: {a['fame']} | Salary: ${a['salary']}M [{tag_str}] | {history_note}")
 
-            actor_choice = input("Enter number (1–3): ").strip()
-            while actor_choice not in ["1", "2", "3"]:
-                actor_choice = input("Invalid choice. Enter 1, 2, or 3: ").strip()
+            # Get player's choice with dynamic validation
+            num_choices = len(actors)
+            valid_choices = [str(i) for i in range(1, num_choices + 1)]
+            prompt = f"Enter number (1–{num_choices}): "
+
+            actor_choice = input(prompt).strip()
+            while actor_choice not in valid_choices:
+                actor_choice = input(f"Invalid choice. Please enter a number from 1 to {num_choices}: ").strip()
 
             actor = actors[int(actor_choice) - 1]
 
@@ -146,6 +166,11 @@ def main():
        
         for movie in released_movies:
             print(f"💥 Released: {movie['title']} | Earnings: ${movie['box_office']}M | Quality: {movie['quality']}")
+            print(f"💰 {movie['title']} will earn over {len(movie['monthly_revenue'])} months.")
+            print("\n📈 Monthly Revenue Update:")
+            for movie in studio.released_movies:
+                if movie["monthly_revenue"]:
+                    print(f"• {movie['title']}: ${movie['monthly_revenue'][0]}M incoming")
             actor = movie["cast"]
             casting_manager.record_collaboration(actor, movie)
 
@@ -161,12 +186,7 @@ def main():
             print("☠️  Your studio is bankrupt and has no upcoming films.")
             print("💥 GAME OVER.")
             break
-     
-        # Show recent news
-        if studio.newsfeed:
-            print("\n📰 Hollywood News:")
-            for story in studio.newsfeed[-3:]:  # show most recent 3
-                print(f"• {story}")
+   
 
         # Monthly expenses
         # Calculate and deduct expenses
@@ -190,6 +210,10 @@ def main():
             print("\n📰 Hollywood News:")
             for story in studio.newsfeed[-3:]:  # show most recent 3
                 print(f"• {story}")
+
+        # Update the studio's revenue
+        studio.update_revenue()        
+        
 
         # Advance the calendar
         calendar.advance()
@@ -253,6 +277,8 @@ def main():
         if total == 0:
             continue
         avg_q = sum(s["quality"] for s in writer["film_history"]) / total
+        avg_box_office = sum(s["box_office"] for s in writer["film_history"]) / total
+
         print(f"✍️ {writer['name']} — Scripts: {total}, Avg Quality: {avg_q:.1f}")
 
     # --- Director career recap ---

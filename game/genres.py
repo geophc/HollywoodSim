@@ -39,6 +39,21 @@ GENRES = {
         "themes": ["supernatural", "slasher", "paranoia", "haunted"],
         "peak_seasons": ["fall"],
         "trend_bonus": 12
+    },
+    "Thriller": {
+        "themes": ["mystery", "crime", "psychological", "suspense"],
+        "peak_seasons": ["fall", "winter"],
+        "trend_bonus": 10
+    },
+    "Family": {
+        "themes": ["adventure", "friendship", "learning", "fun"],
+        "peak_seasons": ["summer"],
+        "trend_bonus": 7
+    },
+    "Documentary": {
+        "themes": ["real-life", "educational", "social issues", "nature"],
+        "peak_seasons": ["spring", "fall"],
+        "trend_bonus": 3
     }
 }
 
@@ -50,3 +65,4 @@ def seasonal_bonus(genre: str, month: int) -> float:
     info = GENRES.get(genre, {})
     bonus = info.get("trend_bonus", 0) if season in info.get("peak_seasons", []) else 0
     return bonus / 100  # convert percent into multiplier (e.g. 0.10 = +10%)
+

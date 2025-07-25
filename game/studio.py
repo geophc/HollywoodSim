@@ -1,6 +1,8 @@
 import random
 from actors import generate_actor
 from calendar import GameCalendar
+from genres import seasonal_bonus
+from scripts import assign_rating, RATINGS
 
 class Studio:
     def __init__(self, name="Player Studio", starting_balance=100.0, year=2025):
@@ -74,8 +76,13 @@ class Studio:
             "writer": script["writer"],
             "cost": production_cost,
             "release_date": release_date,
-            "box_office": None
-        }
+            "box_office": None,
+            "monthly_revenue": [],  # Tracks revenue across months
+            "remaining_revenue": 0  # Total left to earn
+        }   
+       
+        
+    
 
         self.scheduled_movies.append(movie)
         return movie
@@ -89,7 +96,8 @@ class Studio:
 
         for movie in self.scheduled_movies:
             if (calendar.year, calendar.month) == movie["release_date"]:
-                movie["box_office"] = self.simulate_box_office(movie, trending_genres=calendar.trending_genres)
+                # Pass the full calendar object here
+                movie["box_office"] = self.simulate_box_office(movie, calendar)
                 self.balance += movie["box_office"]
 
                 # Record film to actor's history
@@ -114,6 +122,16 @@ class Studio:
                         "box_office": movie["box_office"]
                     })
 
+                # Record film to writer's history
+                if "writer" in movie and movie["writer"]:
+                    writer = movie["writer"]
+                    writer["film_history"].append({
+                        "title": movie["title"],
+                        "year": calendar.year,
+                        "genre": movie["genre"],
+                        "quality": movie["quality"],
+                        "box_office": movie["box_office"]
+                    })
 
 
                 # ✅ Track total earnings and highest-grossing movie
@@ -141,25 +159,49 @@ class Studio:
         self.scheduled_movies = remaining
         return released
 
-    def simulate_box_office(self, movie, trending_genres=None):
+    def simulate_box_office(self, movie, calendar):
 
         """ 
         Simulates box office earnings based on quality, fame, and genre trends.
         """
-        base = movie["quality"] * 0.8
+        base = movie["quality"] * 0.9
         fame = movie["cast"]["fame"] * 0.5
-        random_bonus = round(random.gauss(10, 5), 2)  # average 10, std dev 5
-        bonus_pct = seasonal_bonus(movie["genre"], calendar.month)
+        random_bonus = round(random.gauss(10, 5), 2)
         if random_bonus < 0:
             random_bonus = 0
+
+        bonus_pct = seasonal_bonus(movie["genre"], calendar.month)
+   
+        # Calculate rating cap
+        rating = movie.get("rating", "PG-13")
+        rating_cap = RATINGS[rating]["max_audience"]
+        
         # Genre trend bonus
-        if trending_genres and movie["genre"] in trending_genres:
+        if calendar.trending_genres and movie["genre"] in calendar.trending_genres:
             genre_bonus = 10
         else:  
             genre_bonus = 0
 
-        earnings = round((base + fame + random_bonus) * (1 + bonus_pct), 2)
-        return earnings                        
+        # Calculate total earnings
+        total_earnings = round((base + fame + random_bonus + genre_bonus) * (1 + bonus_pct) * rating_cap, 2)
+
+        # Divide earnings across rollout
+        rollout_months = random.randint(3, 5)
+        monthly = round(total_earnings / rollout_months, 2)
+        movie["monthly_revenue"] = [monthly] * rollout_months
+        movie["remaining_revenue"] = total_earnings
+
+        return 0.0  # Don’t give full earnings yet
+
+    # Return the total earnings for this month
+    def update_revenue(self):
+        for movie in list(self.released_movies):
+            if movie["monthly_revenue"]:
+                this_month = movie["monthly_revenue"].pop(0)
+                self.balance += this_month
+                self.total_earnings += this_month
+                movie["remaining_revenue"] -= this_month
+                   
             
     def is_bankrupt(self):
         """
