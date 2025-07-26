@@ -63,7 +63,7 @@ A structured, modular plan for building out the minimalist, text-driven Hollywoo
 ---
 
 ## ⏳ PHASE 5: Strategic Depth  
-**Status:** UpIn Progress
+**Status:** Completed
 
 **Focus:** Give players choices and influence over strategy.
 
@@ -79,7 +79,7 @@ A structured, modular plan for building out the minimalist, text-driven Hollywoo
 ---
 
 ## ✨ PHASE 6: Narrative & Events  
-**Status:** Upcoming
+**Status:** In Progress
 
 **Focus:** Add drama, flavour, and unpredictability.
 
