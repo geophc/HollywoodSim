@@ -1,4 +1,5 @@
 import random
+import events
 
 from scripts import generate_script
 from actors import generate_actor
@@ -8,6 +9,8 @@ from studio import Studio
 from calendar import GameCalendar
 from casting import CastingPool
 from casting import CastingManager
+
+
 
 
 
@@ -165,12 +168,16 @@ def main():
         released_movies = studio.check_for_releases(calendar)
        
         for movie in released_movies:
-            print(f"💥 Released: {movie['title']} | Earnings: ${movie['box_office']}M | Quality: {movie['quality']}")
+            if movie["box_office"] > 0:
+                earnings_str = f"${movie['box_office']}M"
+            else:
+                # Rough 3-month estimate (or fewer if rollout is shorter)
+                projected = sum(movie.get("monthly_revenue", [])[:3])
+                earnings_str = f"(Est. ${projected:.2f}M)"
+
+            print(f"💥 Released: {movie['title']} | Earnings: {earnings_str} | Quality: {movie['quality']}")
             print(f"💰 {movie['title']} will earn over {len(movie['monthly_revenue'])} months.")
-            print("\n📈 Monthly Revenue Update:")
-            for movie in studio.released_movies:
-                if movie["monthly_revenue"]:
-                    print(f"• {movie['title']}: ${movie['monthly_revenue'][0]}M incoming")
+            
             actor = movie["cast"]
             casting_manager.record_collaboration(actor, movie)
 
@@ -187,6 +194,22 @@ def main():
             print("💥 GAME OVER.")
             break
    
+
+        # Update the studio's revenue
+        studio.update_revenue()        
+        
+        # Show any incoming monthly revenue        
+        print("\n📈 Monthly Revenue Update:")
+        for movie in studio.released_movies:
+            if movie.get("monthly_revenue"):
+                print(f"• {movie['title']}: ${movie['monthly_revenue'][0]}M incoming")
+      
+
+        # Advance the calendar
+        calendar.advance()
+
+        # Run random events
+        events.run_random_events(studio, calendar)
 
         # Monthly expenses
         # Calculate and deduct expenses
@@ -206,17 +229,11 @@ def main():
         print(f"   - Prestige: ${prestige_cost:.2f}M")
         print(f"   = Total: ${expense['total']:.2f}M")
 
+        # Show any news stories        
         if studio.newsfeed:
             print("\n📰 Hollywood News:")
             for story in studio.newsfeed[-3:]:  # show most recent 3
                 print(f"• {story}")
-
-        # Update the studio's revenue
-        studio.update_revenue()        
-        
-
-        # Advance the calendar
-        calendar.advance()
 
     # --- End of year summary ---
     awards = studio.evaluate_awards()
@@ -253,6 +270,19 @@ def main():
     if studio.highest_grossing:
         hg = studio.highest_grossing
         print(f"🏅 Top Earner: {hg['title']} (${hg['box_office']}M, Quality: {hg['quality']})")
+
+    # --- Full Filmography Recap ---
+    print("\n🎞️ Studio Filmography Recap:")
+    for movie in studio.released_movies:
+        writer = movie.get("writer", {}).get("name", "Unknown")
+        director = movie.get("director", {}).get("name", "Unknown")
+        actor = movie.get("cast", {}).get("name", "Unknown")
+        print(
+            f"🎬 {movie['title']} ({movie['genre']}, {movie['budget_class']}) - "
+            f"Released {movie['release_date'][1]}/{movie['release_date'][0]} | "
+            f"Quality: {movie['quality']} | Box Office: ${movie['box_office']}M"
+        )
+        print(f"     ✍️ Writer: {writer} 🎬 Director: {director} 🎭 Lead: {actor}")
 
    
     # --- Actor career recap ---

@@ -196,11 +196,22 @@ class Studio:
     # Return the total earnings for this month
     def update_revenue(self):
         for movie in list(self.released_movies):
-            if movie["monthly_revenue"]:
+            if movie.get("monthly_revenue"):
                 this_month = movie["monthly_revenue"].pop(0)
                 self.balance += this_month
                 self.total_earnings += this_month
                 movie["remaining_revenue"] -= this_month
+
+
+                # ✅ NEW: Add earnings to total box office
+                if "box_office" not in movie:
+                    movie["box_office"] = 0.0
+                movie["box_office"] += this_month
+
+            else:
+                # No revenue left, clear to avoid repeated checks
+                movie.pop("monthly_revenue", None)
+                movie.pop("remaining_revenue", None)
                    
             
     def is_bankrupt(self):
