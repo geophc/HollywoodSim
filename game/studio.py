@@ -8,6 +8,7 @@ class Studio:
     def __init__(self, name="Player Studio", starting_balance=100.0, year=2025):
         self.name = name
         self.balance = starting_balance  # in millions
+        self.scripts = []  # Holds all drafted or shelved scripts
         self.scheduled_movies = []
         self.released_movies = []
         self.prestige = 0  # new attribute for future phase
@@ -18,7 +19,7 @@ class Studio:
         self.newsfeed = []  # stores recent news headlines
         self.actor_pool = [generate_actor(year) for _ in range(15)]  # Start with 15 random actors
         self.known_actors = []  # Optional: track actors you've worked with
-
+        
       
 
     def produce_movie(self, script, actor, director, calendar, months_ahead=1):
@@ -80,9 +81,11 @@ class Studio:
             "monthly_revenue": [],  # Tracks revenue across months
             "remaining_revenue": 0  # Total left to earn
         }   
+        # Assign a rating based on genreif script["status"] != "approved":
+        if script["status"] != "approved":
+            print(f"❌ Script '{script['title']}' must be approved before production.")
+            return None
        
-        
-    
 
         self.scheduled_movies.append(movie)
         return movie

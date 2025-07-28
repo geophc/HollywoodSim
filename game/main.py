@@ -1,17 +1,13 @@
 import random
 import events
 
-from scripts import generate_script
+from scripts import generate_script, rewrite_script, finalize_script
 from actors import generate_actor
 from writers import generate_writer
 from directors import generate_director
 from studio import Studio
 from calendar import GameCalendar
-from casting import CastingPool
-from casting import CastingManager
-
-
-
+from casting import CastingPool, CastingManager
 
 
 def main():
@@ -21,14 +17,11 @@ def main():
     studio = Studio(year=calendar.year)
     casting_manager = CastingManager()
 
-    # Populate the casting pool with actors
+    # Populate casting pool
     for _ in range(30):
         casting_pool.add_actor(generate_actor(calendar.year))
-    # Populate the casting pool with writers
     for _ in range(10):
         casting_pool.add_writer(generate_writer(calendar.year))
-
-    # Populate the casting pool with directors
     for _ in range(5):
         casting_pool.add_director(generate_director(calendar.year))
       
@@ -45,6 +38,7 @@ def main():
         print(f"🎥 Movies in Production: {len(studio.scheduled_movies)} | Released: {len(studio.released_movies)}")
         print(f"💰 Total Earnings: ${studio.total_earnings:.2f}M | Total Expenses: ${studio.total_expenses:.2f}M")
         print(f"🏆 Highest Grossing: {studio.highest_grossing['title'] if studio.highest_grossing else 'N/A'}")
+        
         # Bankruptcy check
         if studio.is_bankrupt():
             print("💀 Your studio is bankrupt! You can no longer produce films.")
@@ -75,14 +69,57 @@ def main():
                 print(f"   ✍️  Writer: {writer['name']} | Specialty: {writer['specialty']} | "
                     f"Interests: {', '.join(writer['interests'])} | Schooling: {writer['education']}")
 
+
+
             # 4. Let player choose a script
             choice = input("Enter number (1–3): ").strip()
             while choice not in ["1", "2", "3"]:
                 choice = input("Invalid choice. Enter 1, 2, or 3: ").strip()
 
             script = scripts[int(choice) - 1]
+            studio.scripts.append(script)  # Store the script
 
-            # 5. Offer player a choice of 3 directors
+            # 5. Rewrite or finalize a stored script (demo only)
+            print("\n📚 Script Management:")
+            for i, s in enumerate(studio.scripts, 1):
+                print(f"{i}. {s['title']} (Draft {s['draft_number']}) — Status: {s['status']} | Quality: {s['quality']}/{s['potential_quality']}")
+            print("\nWould you like to rewrite or finalize a script?")
+
+            choice = input("Enter script number to manage or [enter] to skip: ").strip()
+            if choice and choice.isdigit():
+                selected = studio.scripts[int(choice) - 1]
+                action = input("Type [f] to finalize or [r] to rewrite: ").strip().lower()
+                if action == 'f':
+                    finalize_script(selected, studio_prestige=studio.prestige)
+                elif action == 'r':
+                    rewrite_choices = casting_pool.get_writer_choices(3)
+                    print("Choose a writer to rewrite the script:")
+                    for i, w in enumerate(rewrite_choices, 1):
+                        print(f"{i}. {w['name']} ({w['specialty']}, {w['education']})")
+                    writer_choice = input("Enter number: ").strip()
+                    if writer_choice in ["1", "2", "3"]:
+                        chosen_writer = rewrite_choices[int(writer_choice) - 1]
+                        rewrite_script(selected, chosen_writer, calendar)
+           
+            # ✅ Only proceed to production if there's at least one approved script
+            approved_scripts = [s for s in studio.scripts if s["status"] == "approved"]
+            if not approved_scripts:
+                print("\n⚠️ No scripts approved for production this month.")
+                continue
+
+            # Let player choose one approved script
+            print("\n🎞 Approved Scripts Available for Production:")
+            for i, s in enumerate(approved_scripts, 1):
+                print(f"{i}. {s['title']} (Genre: {s['genre']}, Quality: {s['quality']})")
+
+            choice = input("Enter number of script to produce: ").strip()
+            while not choice.isdigit() or not (1 <= int(choice) <= len(approved_scripts)):
+                choice = input("Invalid input. Enter number of script to produce: ").strip()
+
+            script = approved_scripts[int(choice) - 1]
+
+
+            # 6. Offer player a choice of 3 directors
             print("\n🎬 Choose a director:")
             directors = casting_pool.get_director_choices(3)
 
@@ -108,7 +145,7 @@ def main():
             director = directors[int(choice) - 1]
 
 
-            # 6. Offer player a choice of 3 actors
+            # 7. Offer player a choice of 3 actors
             actors = casting_pool.get_actor_choices(3)
             print("\n🎬 Choose a lead actor:")
 
@@ -139,7 +176,7 @@ def main():
 
             actor = actors[int(actor_choice) - 1]
 
-        # 7. Ask player for release window
+        # 8. Ask player for release window
         print("\n📆 Choose a release window (1–6 months from now):")
         months_ahead = input("Enter number of months (default = 1): ").strip()
 
@@ -149,7 +186,7 @@ def main():
             months_ahead = max(1, min(int(months_ahead), 6))  # clamp to 1–6
         
    
-        # 8. Produce the movie
+        # 9. Produce the movie
         movie = studio.produce_movie(script, actor, director, calendar, months_ahead)
 
         if movie:
@@ -164,7 +201,7 @@ def main():
         else:
             print("⚠️ Skipped production due to insufficient funds.")
 
-        # Release any scheduled movies
+        # 10. Release any scheduled movies
         released_movies = studio.check_for_releases(calendar)
        
         for movie in released_movies:
