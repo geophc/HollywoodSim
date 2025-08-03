@@ -1,5 +1,6 @@
 # game/scripts.py
 import random
+import game_data
 
 # Centralized data for movie ratings and their restrictions by genre.
 RATINGS = {
@@ -44,10 +45,12 @@ def assign_rating(tags, genre):
     # Ensure the assigned rating is allowed for the genre
     allowed_ratings = GENRE_RATING_LIMITS.get(genre, set(RATINGS.keys()))
     if rating not in allowed_ratings:
-        if rating in ["R", "NC-17"]:
-             if "PG-13" in allowed_ratings: return "PG-13"
-             if "PG" in allowed_ratings: return "PG"
-             if "G" in allowed_ratings: return "G"
+    # Sort by restrictiveness (based on min_age)
+        valid_ratings = sorted(allowed_ratings, key=lambda r: RATINGS[r]["min_age"], reverse=True)
+        rating = valid_ratings[0] if valid_ratings else "PG-13"
+        if "PG-13" in allowed_ratings: return "PG-13"
+        if "PG" in allowed_ratings: return "PG"
+        if "G" in allowed_ratings: return "G"
         else:
             if "PG-13" in allowed_ratings: return "PG-13"
             if "R" in allowed_ratings: return "R"
@@ -55,69 +58,126 @@ def assign_rating(tags, genre):
     return rating
 
 
-# FIX: Changed function signature to accept the 'calendar' object.
-def generate_script(calendar, writer=None):
+def generate_script(calendar, writer, source_key=None):
+    
     """
-    Generates a first draft of a script, calculating its initial quality
-    and potential quality based on the writer's skills.
+    Generates a script based on a chosen source material and writer.
+    This version is fully driven by the game_data.py file.
     """
-    # FIX: Extract the integer year from the calendar object.
     current_year = calendar.year
+    source_key = source_key or random.choice(list(game_data.SOURCE_TYPES.keys()))
+    source_data = game_data.SOURCE_TYPES[source_key]
+        
+    # 1. Determine Genre from Source Material
+    genre = random.choice(source_data["associated_genres"])
+    genre_data = game_data.GENRES[genre]
 
-    titles = [
-        "The Bitter End", "Quantum Hearts", "Midnight at the Arcade", "The Secret Dream",
-        "Echoes of Tomorrow", "Painted Lies", "Beyond the Hollow", "Love in Low Orbit"
-    ]
-    genres = ["Drama", "Comedy", "Thriller", "Sci-Fi", "Romance", "Horror", "Action", "Family", "Documentary"]
-    tag_pool = ["gritty", "emotional", "fast-paced", "cerebral", "quirky", "low-budget", "experimental", "action-heavy", "stylized", "family", "violent"]
-    
-    if not writer:
-        writer = {
-            "name": "Staff Writer", "specialty": random.choice(genres), "tags": [],
-            "education": "Self-Taught", "debut_year": current_year - 1, "fame": 10,
-            "salary": 0.5, "film_history": [], "interests": [],
-        }
+    # 2. Generate a more varied Thematic Title
 
-    title = random.choice(titles)
-    genre = random.choice(genres)
-    tags = random.sample(tag_pool, 2)
+    # Choose title structure format
+    genre_format_bias = {
+        "Horror": ["{adjective} {noun}", "{noun} of the {noun2}"],
+        "Romance": ["The {noun} {mid_phrase} {place}", "{prefix} {noun}"],
+        "Sci-Fi": ["{prefix} {noun} {mid_phrase} {place}", "{noun} from the {place}"],
+        "Thriller": ["{adjective} {noun}", "{noun} in the {place}"],
+        "Family": ["{noun} of {place}", "{adjective} {noun}"],
+        "Comedy": ["{noun} {mid_phrase} {place}", "{prefix} {noun}"],
+        "Drama": ["{noun} {mid_phrase} {place}", "{prefix} {noun}"],
+        "Action": ["{adjective} {noun}", "{noun} of the {place}"],
+        "Documentary": ["{noun} of {place}", "{adjective} {noun}"],
+        "Musical": ["{noun} {mid_phrase} {place}", "{prefix} {noun}"],
+        "default": ["{prefix} {noun}", "{noun} of the {noun2}"]
+
+    }
+
+    # Word data for filling the structure
+    title_parts = game_data.SCRIPT_TITLES_BY_GENRE.get(genre, {
+    "prefixes": ["The"], 
+    "nouns": ["Dream"], 
+    "noun2": ["Dream"]
+    })
+    # If no specific parts, use a default
+    if not title_parts:
+        title_parts = {
+            "prefixes": ["The"],
+            "nouns": ["Story"],
+            "noun2": ["Dream"]
+        }       
+
+    # Select structure template
+    structure_pool = genre_format_bias.get(genre, game_data.TITLE_STRUCTURES)
+    structure = random.choice(structure_pool)
+
+    # Fill in blanks for the chosen structure
+    title_data = {
+        "prefix": random.choice(title_parts.get("prefixes", ["The"])),
+        "noun": random.choice(title_parts.get("nouns", ["Story"])),
+        "noun2": random.choice(title_parts.get("nouns", ["Dream"])),
+        "mid_phrase": random.choice(game_data.MID_PHRASES),
+        "place": random.choice(game_data.PLACES),
+        "adjective": random.choice(game_data.ADJECTIVES),
+    }
+
+    # Format title
+    try:
+        title = structure.format(**title_data)
+    except KeyError as e:
+        print(f"⚠️ Missing field in title format: {e}")
+        title = f"{random.choice(title_data['prefixes'])} {random.choice(title_data['nouns'])}"
+
+    title = title.title()
+
+
+    # 3. Determine Tags and Themes
+    # Pull tags from the genre's common tags and add a random theme
+    tags = random.sample(genre_data["common_tags"], k=2)
+    chosen_theme_key = random.choice(list(game_data.THEMES.keys()))
+    chosen_theme = game_data.THEMES[chosen_theme_key]
+    tags.append(chosen_theme["name"]) # Add the theme as a tag
+
+    # 4. Assign Rating
     rating = assign_rating(tags, genre)
-    
-    potential_quality = 65
-    if writer:
-        if genre == writer.get("specialty"):
-            potential_quality += 15
-        
-        overlap_tags = set(tags) & set(writer.get("tags", []))
-        potential_quality += len(overlap_tags) * 3
-        
-        if writer.get("education") in ["Film School", "MFA Program", "Playwriting"]:
-            potential_quality += 5
-        
-        # FIX: This line now works correctly because current_year is an integer.
-        career_length = current_year - writer.get("debut_year", current_year)
-        potential_quality += min(career_length * 0.5, 10)
 
-    potential_quality = round(min(100, potential_quality))
+    # 5. Calculate Potential Quality
+    # This now incorporates the writer's skill AND the source material's potential
+    potential_quality = 50 # Base potential
+    
+    # Writer contribution
+    if writer.get("specialty") == genre:
+        potential_quality += 15 # Writer is in their element
+    if writer.get("education") in ["Film School", "MFA Program"]:
+        potential_quality += 5
+    career_length = current_year - writer.get("debut_year", current_year)
+    potential_quality += min(career_length * 0.5, 10) # Experience bonus
+
+    # Source Material & Theme contribution
+    potential_quality += (source_data["prestige_multiplier"] - 1.0) * 10
+    potential_quality += chosen_theme["prestige_modifier"] * 10
+
+    # Ensure quality is within bounds (e.g., 30-100)
+    potential_quality = round(max(30, min(100, potential_quality)))
     initial_quality = round(potential_quality * random.uniform(0.60, 0.85))
+    appeal = round(random.uniform(0.3, 1.0), 2)  # You can customize how it's calculated
 
     return {
         "title": title,
         "genre": genre,
+        "source": source_data["name"],
         "rating": rating,
         "tags": tags,
+        "theme": chosen_theme["name"],
         "writer": writer,
         "status": "first_draft",
         "quality": initial_quality,
+        "appeal": appeal,
+        "source_key": source_key,
         "potential_quality": potential_quality,
         "draft_number": 1,
         "rewrite_history": [writer["name"]],
-        "budget_class": random.choice(["Low", "Mid", "High"]), # Added for compatibility
-        "appeal": random.randint(1, 5), # Added for compatibility
+        "base_buzz": source_data["base_buzz"], # Pass buzz from source
+        "budget_class": random.choice(genre_data["budget_affinity"]),
     }
 
-
-# FIX: Changed function signature to accept the 'calendar' object.
 def rewrite_script(script, new_writer, calendar):
     """
     Improves a script's quality through a rewrite pass by a new writer.

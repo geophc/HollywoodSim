@@ -3,12 +3,14 @@ from actors import generate_actor
 from calendar import GameCalendar
 from genres import seasonal_bonus
 from scripts import assign_rating, RATINGS
+from library import manage_script_library
 
 class Studio:
     def __init__(self, name="Player Studio", starting_balance=100.0, year=2025):
         self.name = name
         self.balance = starting_balance  # in millions
         self.scripts = []  # Holds all drafted or shelved scripts
+        self.script_library = []
         self.scheduled_movies = []
         self.released_movies = []
         self.prestige = 0  # new attribute for future phase
@@ -19,7 +21,8 @@ class Studio:
         self.newsfeed = []  # stores recent news headlines
         self.actor_pool = [generate_actor(year) for _ in range(15)]  # Start with 15 random actors
         self.known_actors = []  # Optional: track actors you've worked with
-        
+        self.contracts = {"actors": [], "writers": [], "directors": []}
+
       
 
     def produce_movie(self, script, actor, director, calendar, months_ahead=1):

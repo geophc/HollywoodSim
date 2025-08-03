@@ -1,6 +1,7 @@
 # game/calendar.py
 import random
 # Import the dictionary as 'GENRE_DATA' and the function
+from game_data import GENRES as GENRE_DATA
 from genres import GENRES as GENRE_DATA, season_for_month
 
 GENRE_LIST = ["Action", "Comedy", "Drama", "Romance", "Sci-Fi", "Horror", "Thriller"]
