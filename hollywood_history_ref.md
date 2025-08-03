@@ -207,6 +207,7 @@ Each month, the player sees:
 - Audience Segments: family, teens, block-busters, art-house
 - Marketing Campaigns: spend budget to boost genre or theme affinity
 - Global Markets: regional trends (Asia, Europe, North America)
+- Market fuctionality like Drug-Wars for buying and selling scripts, and finished moviess, maybe even a transfer market for actors, writers, and staff. Influenced by seasonality and event demands.
 
 This integrated approach ensures every script choice, theme decision, and release date becomes a strategic puzzle—reflecting the dynamic, seasonal dance of Hollywood’s real‐world box office. Let me know which piece you’d like to prototype first
 

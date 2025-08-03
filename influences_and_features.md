@@ -259,7 +259,9 @@ Introduce Oscar Bait Mechanics: prestige-heavy projects with low commercial retu
 
 Create Aging out arcs where actors become directors or leave the business
 
+Cimrnatophyers and Editors,
 
+Better contractor negoitiations for 
 
 
 

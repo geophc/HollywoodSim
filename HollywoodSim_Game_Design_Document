@@ -1,0 +1,243 @@
+HollywoodSim: Game Design Document
+Version: 1.0
+
+Date: August 1, 2025
+
+Table of Contents
+Core Vision & Philosophy
+
+The Core Gameplay Loop
+
+Primary Systems (Detailed Breakdown)
+
+Script Generation & Development
+
+Talent & Staff
+
+Production & Release Cycle
+
+Finance & Market Simulation
+
+The Studio: Reputation & Assets
+
+Advanced & Long-Term Systems
+
+Talent Career Arcs & Aging
+
+Systemic Events & Narrative
+
+Historical Eras & Technology
+
+Technical & User Interface
+
+Appendix A: Key Influences
+
+Appendix B: Research & Resource List
+
+1.0 Core Vision & Philosophy
+HollywoodSim is a minimalist, turn-based Hollywood studio simulator. Inspired by classics like The Movies, Hollywood Mogul, and Total Extreme Wrestling, it emphasizes strategic decision-making over graphical fidelity.
+
+Minimal Graphics, Maximum Replayability: The focus is on deep, interlocking systems that create emergent narratives and strategic challenges.
+
+Text-Driven Clarity: Information is presented clearly and concisely, allowing players to make informed decisions without visual clutter.
+
+Evolving Systems: The simulation should feel alive, with market trends, actor careers, and studio reputations changing organically over time.
+
+Meaningful Choices: No action should feel wasted. Every decision—from script rewrites to release timing—should have a tangible impact on the studio's trajectory.
+
+2.0 The Core Gameplay Loop
+The game progresses in monthly turns. Each turn, the player engages in a strategic cycle designed to grow their studio from a small upstart to an industry titan.
+
+Briefing Phase: Review the current market forecast, genre trends, studio finances, and any news or events.
+
+Acquisition Phase: Choose from a selection of script pitches and hire key talent (actors, directors, etc.) from an available pool.
+
+Development & Scheduling Phase: Assign talent to scripts. Invest in rewrites, marketing campaigns, or other improvements. Slot finished films into the future release calendar.
+
+Release & Resolution Phase: Films scheduled for the current month are released. Box office earnings, critical reviews, and audience scores are calculated.
+
+Reporting Phase: Pay monthly operating expenses. Receive a summary of the month's performance, watching your studio's cash, prestige, and reputation change in response to your decisions.
+
+3.0 Primary Systems (Detailed Breakdown)
+3.1 Script Generation & Development
+Scripts are the lifeblood of the studio. The system allows for both procedural generation and deep player customization.
+
+Script Attributes:
+
+genre(s): Primary and optional secondary genre (e.g., ["Action", "Comedy"]).
+
+themes: Descriptive tags like "Revenge," "Family," or "Political Intrigue."
+
+initial_appeal: A base score indicating market potential.
+
+complexity: A 1-5 scale affecting cost, development time, and potential critic_score.
+
+budget_class: Low, Indie, Mid-Budget, or Blockbuster.
+
+style_sliders: Toggles for Tone (Lighthearted ↔ Dark) and Pacing (Slow Burn ↔ Fast-Paced).
+
+Development & Rewrites:
+
+Players can invest cash and time to improve a script's appeal or complexity.
+
+Hiring a skilled writer allows for more effective rewrites.
+
+Generative Descriptions: Long-term, the game could generate evocative script summaries based on genre, themes, and tone, akin to Dwarf Fortress's world generation.
+
+3.2 Talent & Staff
+The studio is nothing without its people. Talent is procedurally generated, with visible stats and hidden traits that are revealed over time.
+
+Actors, Directors, & Writers:
+
+Attributes: Each has stats for Skill, Fame, and Salary.
+
+Synergy: Talent may have preferences for certain genres, themes, or collaborators.
+
+Memory: Talent remembers past collaborations with the player's studio, affecting loyalty and future contract negotiations.
+
+Expanded Studio Roster (Strategic Hires):
+
+Producers: Provide passive studio-wide bonuses.
+
+Line Producer: Reduces risk of budget overruns.
+
+Creative Producer: Improves the quality of script pitches.
+
+Executive Producer: Helps secure better financing and distribution deals.
+
+"Below-the-Line" Talent: Can be hired per-film or as part of an upgraded internal department.
+
+Cinematographer: Can boost critic_score and unlock visual style tags.
+
+Composer: Can improve audience scores and add a small fame modifier.
+
+Editor: Directly influences a film's pacing and can "rescue" a troubled production.
+
+3.3 Production & Release Cycle
+Timing is everything. Where and when a film is released is as important as how it's made.
+
+Release Windows: The player strategically chooses a release month for each film.
+
+Seasonal Trends: Genre popularity fluctuates quarterly (e.g., Action in summer, Drama in awards season). The player receives a forecast to plan ahead.
+
+Competition: The release calendar shows films from rival studios, allowing the player to either compete directly or counter-program in an empty slot.
+
+Holding Costs: Delaying a finished film to wait for a better window will incur monthly costs.
+
+3.4 Finance & Market Simulation
+This system models the economic realities of Hollywood, rewarding careful financial planning and market awareness.
+
+Revenue Streams:
+
+Box Office: Calculated based on film quality, actor fame, genre/seasonal alignment, and marketing spend, minus a competition penalty.
+
+Distribution Deals: Instead of a simple release, players may need to negotiate deals (theatrical vs. streaming), trading a percentage of revenue for wider distribution or a guaranteed payout.
+
+Merchandising & IP: Successful franchises can generate long-term ancillary revenue from merchandise, becoming a vital income stream.
+
+Market Dynamics:
+
+Rival Studios: AI-controlled studios compete for talent, scripts, and box office dominance.
+
+Market Saturation: If too many films of the same genre are released in a short period, audience fatigue sets in, creating diminishing returns for everyone.
+
+3.5 The Studio: Reputation & Assets
+The player's studio is a character in itself, evolving based on its successes and failures.
+
+Prestige & Reputation:
+
+Prestige: A master score that unlocks access to higher-tier talent and scripts. Gained by releasing critically acclaimed and profitable films.
+
+Reputation Matrix: The studio develops a distinct identity based on player choices:
+
+Talent-Friendly ↔ Corporate Machine: Influences talent loyalty and contract costs.
+
+Arthouse Darling ↔ Blockbuster Factory: Creates a niche, attracting specific types of scripts and directors.
+
+Studio Upgrades: Players can invest cash to build permanent studio departments, providing passive bonuses and unlocking new strategic actions (e.g., an In-House Marketing Department unlocks viral campaigns).
+
+4.0 Advanced & Long-Term Systems
+These features are designed to create deep, long-term engagement and emergent narratives.
+
+4.1 Talent Career Arcs & Aging
+Actors and other talent are not static entities; they have entire careers that the player influences.
+
+Aging System: Talent ages over time, affecting their fame potential and suitability for certain roles (e.g., an aging actor may be less effective in action blockbusters but perfect for prestige dramas).
+
+Career Arcs: The system tracks an individual's career trajectory, generating labels like "Rising Star," "Washed Up," or "Cult Icon." A "Comeback Story" arc is possible for older actors who star in a hit film.
+
+Retirement & Legacy: Talent will eventually retire or pass away, leaving a legacy. Some may transition into new roles (e.g., an actor becomes a director).
+
+4.2 Systemic Events & Narrative
+The simulation will generate challenges and opportunities that mimic the chaotic nature of Hollywood.
+
+Scandal & PR Management: A star or the studio itself can be hit by a scandal, triggering a crisis event that requires player intervention (e.g., fire the talent, hire a PR firm, or ignore the problem and risk the consequences).
+
+Random Events: Viral successes, unexpected PR disasters, film festival buzz, and sudden shifts in genre popularity will keep the player on their toes.
+
+4.3 Historical Eras & Technology
+The game can be set against a backdrop of evolving film history and technology.
+
+Era Modes: Players could run a studio in a specific time period (e.g., the 1950s Studio System, with exclusive actor contracts) for a unique challenge.
+
+Technology Tree: Players can invest R&D funds into new filmmaking technologies like Color film, CGI, or 3D. Being an early adopter is risky but can lead to massive competitive advantages.
+
+5.0 Technical & User Interface
+The interface will be clean, functional, and text-focused, with potential for future expansion.
+
+Initial Implementation: Rich CLI formatting (e.g., using rich or textual in Python).
+
+Desktop Version: A simple GUI could be developed using Tkinter or a more modern framework.
+
+Data Export: All reports and high score boards should be exportable to CSV for easy analysis by the player community.
+
+Persistence: A robust save/load system is essential for long-term play.
+
+Appendix A: Key Influences
+Hollywood Mogul & Total Extreme Wrestling: For their deep, text-based simulation and emphasis on reputation and scheduling.
+
+The Movies (Lionhead): For its staff management, talent development, and studio-building mechanics.
+
+Game Dev Tycoon / Software Inc.: For their satisfying turn-based project loops and strategic growth.
+
+Liberal Crime Squad & Dwarf Fortress: For their minimalist UI, procedural generation, and potential for emergent, player-driven storytelling.
+
+Bullfrog / MicroProse Sims: For their core philosophy of prioritizing system interactions over visual fidelity.
+
+Appendix B: Research & Resource List
+A curated list of resources for gameplay mechanics, historical context, and narrative flavor.
+
+Books
+For Story & Script Mechanics:
+
+Story: Substance, Structure, Style, and the Principles of Screenwriting by Robert McKee
+
+Save the Cat! The Last Book on Screenwriting You'll Ever Need by Blake Snyder
+
+For Hollywood History & Culture:
+
+Pictures at a Revolution: Five Movies and the Birth of the New Hollywood by Mark Harris
+
+Easy Riders, Raging Bulls: How the Sex-Drugs-and-Rock 'N' Roll Generation Saved Hollywood by Peter Biskind
+
+The Kid Stays in the Picture by Robert Evans
+
+For Film Economics:
+
+The Hollywood Economist: The Hidden Financial Realities Behind the Movies by Edward Jay Epstein
+
+Documentaries
+Hearts of Darkness: A Filmmaker's Apocalypse (Insight into a chaotic production)
+
+The Men Who Made the Movies (Series on classic Hollywood directors)
+
+Electric Boogaloo: The Wild, Untold Story of Cannon Films (A great case study of a specific studio identity)
+
+Websites & Data Sources
+Box Office Mojo: For historical and current box office data.
+
+The Numbers: Excellent source for film budgets, revenue, and industry analysis.
+
+Variety / The Hollywood Reporter: For industry news, trends, and vocabulary.
+
+The Internet Movie Script Database (IMSDb): For analyzing script structure and themes.

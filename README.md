@@ -1,39 +1,70 @@
 # 🎬 HollywoodSim
 
 A minimalist, turn-based Hollywood studio simulator built in Python.  
-Inspired by classics like *The Movies*, *Hollywood Mogul*, and *Total Extreme Wrestling*, it focuses on strategic planning, actor selection, movie production, and box office success — all with a clean, text-based interface.
+Inspired by classics like *The Movies*, *Hollywood Mogul*, and *Total Extreme Wrestling*, it emphasizes strategic decision-making, script curation, casting, and market timing — all via a clean, text-based interface.
 
 ---
 
-## 🚀 Current Features
+## 🚀 Core Features (Phase 1 Complete)
 
-These reflect the foundation of a playable simulation:
+These systems form the foundation of gameplay:
 
-- ✅ Monthly game calendar and time progression
-- ✅ Procedural generation of movie scripts and actors
-- ✅ Movie production system with budget, quality, and compatibility mechanics
-- ✅ Film scheduling and automated release tracking
-- ✅ Box office revenue simulation based on movie quality and actor fame
-- ✅ Studio cash balance and production cost tracking
-- ✅ Soft bankruptcy logic (blocks production if underfunded)
+- ✅ Monthly time progression with seasonal genre trends
+- ✅ Procedural generation of scripts, actors, and directors
+- ✅ Script quality influenced by writer attributes and rewrite cycles
+- ✅ Movie production flow: cast, shoot, finalize, release
+- ✅ Revenue simulation influenced by actor fame, genre alignment, and film quality
+- ✅ Operating expenses, budget constraints, and studio cash tracking
+- ✅ Prestige-based gating for high-quality scripts and talent
 
 ---
 
 ## 🧠 Simulation Highlights
 
-Additional features not listed in the main roadmap:
+Additional mechanics shaping outcomes:
 
-- 🎭 **Prestige System** – Earn prestige when movies rated 80+ are released  
-- 📉 **Monthly Expenses** – Regular studio operating costs scale with studio activity  
-- 📊 **Detailed Logs** – Track production decisions, finances, and performance each month  
-- 🏁 **End-of-Year Report** – Final prestige and cash balance give a studio performance snapshot  
+- 🎭 **Prestige System** – Boost access to elite scripts and collaborators by releasing highly rated films
+- ✍️ **Rewrite Passes** – Improve scripts through costly rewrites with diminishing returns
+- 📉 **Monthly Expenses** – Studio costs scale with active projects and reputation
+- 📊 **Detailed Logs** – Month-by-month breakdown of finances, decisions, and results
+- 🏁 **End-of-Year Report** – Shows studio performance based on cash, reputation, and critical success
+- 📰 **Newsfeed & Reviews** – Simulated press coverage and critic reactions for released films
+
+---
+
+## 🧪 In Development (Phase 2+ Roadmap)
+
+These features are being designed or prototyped:
+
+- 🎥 Casting Memory – Actors, writers, and directors remember past collaborations
+- 🏆 Award Season – Year-end award nominations and wins affect fame and prestige
+- 🔁 Rewrites by New Writers – Let unproduced scripts be salvaged by different writers
+- 📚 Script Shelf – Store unproduced scripts for later use or sale
+- 🤝 Agent Loyalty – Actors and directors may favour familiar collaborators
+- 🎯 Marketing System – Optional budgets to boost opening weekend potential
+- 🌐 Critical Network – Reviewers may show preferences or biases based on themes, studios, or past work
+
+---
+
+## 📂 Project Structure
+
+game/
+├── actors.py # Actor creation, fame, and film history
+├── calendar.py # Monthly tracking and seasonal genre bonuses
+├── casting.py # Cast selection and synergy logic
+├── directors.py # Procedural director profiles
+├── events.py # Random events (under development)
+├── game_data.py # Genre definitions, tag pools, and system constants
+├── main.py # Entry point and game loop
+├── scripts.py # Script generation, rewriting, and ratings
+├── studio.py # Core studio simulation: production, finances, and output
+├── writers.py # Writer profiles, career data, and skill modeling
 
 ---
 
 ## 🛠️ How to Run
 
-Make sure you have Python 3.10+ installed. Then:
+Make sure you have Python 3.10+ installed. Then from the project root:
 
 ```bash
-# In your project root
 python game/main.py
