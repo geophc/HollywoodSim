@@ -2,9 +2,10 @@
 import random
 # Import the dictionary as 'GENRE_DATA' and the function
 from game_data import GENRES as GENRE_DATA
-from genres import GENRES as GENRE_DATA, season_for_month
+from genres import GENRES as GENRE_LIST, season_for_month
+from game_data import SEASONS
 
-GENRE_LIST = ["Action", "Comedy", "Drama", "Romance", "Sci-Fi", "Horror", "Thriller"]
+GENRES_LIST = GENRE_DATA
 
 class GameCalendar:
     def __init__(self):
@@ -31,10 +32,10 @@ class GameCalendar:
             self.genre_popularity[genre] = max(0, min(100, current + drift))
 
     def new_trends(self):
-        return random.sample(GENRE_LIST, k=2)  # Pick 2 trending genres
+        return random.sample(list(GENRE_LIST), k=2)
 
     def display(self):
-        return f"{self.month_name()} {self.year}"
+        print(f"{self.month_name()} {self.year}")
         print("🔮 3‑Month Genre Forecast:")
         for genre, val in self.genre_popularity.items():
             print(f"   {genre}: {val:.0f}% popular")
@@ -46,4 +47,4 @@ class GameCalendar:
         ][self.month - 1]
     
     def generate_forecast(self):
-        return random.sample(GENRE_LIST, k=2)
+        return random.sample(list(GENRE_LIST), k=2)

@@ -21,6 +21,9 @@ GENRE_RATING_LIMITS = {
     "Horror": {"PG-13", "R", "NC-17"},
     "Family": {"G", "PG"},
     "Documentary": {"G", "PG", "PG-13"},
+    "Musical": {"G", "PG", "PG-13", "R"},
+    "Animation": {"G", "PG", "PG-13"},
+    "Western": {"G", "PG", "PG-13", "R"},            
 }
 
 
@@ -86,6 +89,8 @@ def generate_script(calendar, writer, source_key=None):
         "Action": ["{adjective} {noun}", "{noun} of the {place}"],
         "Documentary": ["{noun} of {place}", "{adjective} {noun}"],
         "Musical": ["{noun} {mid_phrase} {place}", "{prefix} {noun}"],
+        "Animation": ["{noun} {mid_phrase} {place}", "{prefix} {noun}"],
+        "Western": ["{noun} of the {place}", "{adjective} {noun}"],
         "default": ["{prefix} {noun}", "{noun} of the {noun2}"]
 
     }
@@ -126,7 +131,6 @@ def generate_script(calendar, writer, source_key=None):
         title = f"{random.choice(title_data['prefixes'])} {random.choice(title_data['nouns'])}"
 
     title = title.title()
-
 
     # 3. Determine Tags and Themes
     # Pull tags from the genre's common tags and add a random theme

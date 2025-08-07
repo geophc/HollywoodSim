@@ -1,5 +1,6 @@
 import random
-from actors import generate_actor
+from personnel import generate_actor
+#from actors import generate_actor
 from calendar import GameCalendar
 from genres import seasonal_bonus
 from scripts import assign_rating, RATINGS
@@ -22,8 +23,7 @@ class Studio:
         self.actor_pool = [generate_actor(year) for _ in range(15)]  # Start with 15 random actors
         self.known_actors = []  # Optional: track actors you've worked with
         self.contracts = {"actors": [], "writers": [], "directors": []}
-
-      
+     
 
     def produce_movie(self, script, actor, director, calendar, months_ahead=1):
         """

@@ -1,9 +1,10 @@
 # market.py
 
 import random
-from actors import generate_actor
-from directors import generate_director
-from writers import generate_writer
+from personnel import generate_actor, generate_director, generate_writer
+#from actors import generate_actor
+#from directors import generate_director
+#from writers import generate_writer
 from scripts import generate_script
 from studio import Studio
 from game_data import SEASONS, SOURCE_TYPES, SCRIPT_TITLES_BY_GENRE, TITLE_STRUCTURES

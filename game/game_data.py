@@ -68,6 +68,7 @@ SOURCE_TYPES = {
         "availability": 10,
         "associated_genres": ["Sci-Fi", "Horror", "Thriller", "Drama"]
     }
+
 }
 
 SEASONS = {
@@ -137,7 +138,9 @@ GENRES = {
         "budget_affinity": ["Mid", "High"],
         "prestige_multiplier": 1.0,
         "marketing_focus": ["Spectacle", "Concept"],
-        "common_tags": ["cerebral", "futuristic", "blockbuster", "dystopian"]
+        "common_tags": ["cerebral", "futuristic", "blockbuster", "dystopian"],
+        "peak_seasons": ["summer"],
+        "trend_bonus": 8
     },
     "Thriller": {
         "name": "Thriller",
@@ -227,6 +230,39 @@ GENRES = {
         "peak_seasons": ["winter"],
         "trend_bonus": 4
     }, 
+    "Documentary": {
+        "name": "Documentary",
+        "primary_audience": "Adults, 25+",
+        "production_focus": ["Real-Life", "Educational", "Social Issues"],
+        "budget_affinity": ["Low", "Mid"],
+        "prestige_multiplier": 1.3,
+        "marketing_focus": ["Real-Life", "Educational"],
+        "common_tags": ["informative", "real-life", "social issues", "educational"],
+        "peak_seasons": ["spring", "fall"],
+        "trend_bonus": 3
+    },
+    "Animation": {
+        "name": "Animation",
+        "primary_audience": "Children, Families",
+        "production_focus": ["Visuals", "Storytelling", "Voice Acting"],
+        "budget_affinity": ["Mid", "High"],
+        "prestige_multiplier": 1.2,
+        "marketing_focus": ["Family-Friendly", "Visuals"],
+        "common_tags": ["colorful", "imaginative", "family-friendly", "fun"],
+        "peak_seasons": ["summer", "winter"],
+        "trend_bonus": 5
+    },
+    "Western": {
+        "name": "Western",
+        "primary_audience": "Adults, 30+",
+        "production_focus": ["Action", "Character", "Setting"],
+        "budget_affinity": ["Low", "Mid"],
+        "prestige_multiplier": 0.8,
+        "marketing_focus": ["Nostalgia", "Action"],
+        "common_tags": ["nostalgic", "action-packed", "gritty", "character-driven"],
+        "peak_seasons": ["fall", "winter"],
+        "trend_bonus": 2
+    },
         
     # ... etc. for all other genres
 }
@@ -262,7 +298,13 @@ THEMES = {
         "synergy_genres": ["Romance", "Drama", "Fantasy", "Adventure", "Musical"],
         "prestige_modifier": 0.2,
         "audience_modifier": 0.3
-    }
+    },
+    "Survival": {
+        "name": "Survival",
+        "synergy_genres": ["Action", "Adventure", "Horror"],
+        "prestige_modifier": 0.1,
+        "audience_modifier": 0.2
+    },
 }
 
 
@@ -417,7 +459,15 @@ SCRIPT_TITLES_BY_GENRE = {
     "Musical": {
         "prefixes": ["The", "Songs of", "Melodies from", "Rhythms of", "Dances of", "Voices of", "Harmony in", "Symphony of", "Chorus of", "Ballads from"],
         "nouns": ["Music", "Dreams", "Love", "Stars", "Heart", "Life", "Joy", "Harmony", "Melody", "Rhythm"]
-    }   
+    },
+    "Animation": {
+        "prefixes": ["The", "Magic of", "Tales from", "Adventures in", "Dreams of", "World of", "Journey to", "Legends of", "Stories from", "Wonders of"],
+        "nouns": ["Animation", "Adventure", "Dreams", "Magic", "Heroes", "Fantasy", "Fun", "Joy", "Imagination", "Wonder"]
+    },
+    "Western": {
+        "prefixes": ["The", "Tales of", "Legends of", "Journey to", "Quest for", "Saga of", "Outlaws of", "Heroes of", "Frontier of", "Dusty Trails of"],
+        "nouns": ["West", "Frontier", "Outlaws", "Heroes", "Gold Rush", "Cattle Drive", "Showdown", "Saloon", "Ranchers", "Pioneers"]
+    },   
 
 }
 
