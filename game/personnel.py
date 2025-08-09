@@ -2,17 +2,16 @@
 import random
 import game_data
 
+from game_data import FIRST_NAMES, LAST_NAMES
 GENRES = game_data.GENRES
 
 # === ACTORS ===
 def generate_actor(current_year):
-    first_names = ["Taylor", "Morgan", "Jamie", "Alex", "Jordan"]
-    last_names = ["Stone", "Ray", "Knight", "Monroe", "Lee"]
     TAG_POOL = [
         "serious", "comedic", "dramatic", "musical", "sci-fi regular", "rom-com star",
         "method actor", "action hero", "diva", "low-budget favourite", "award-winning", "up-and-comer"
     ]
-    name = f"{random.choice(first_names)} {random.choice(last_names)}"
+    name = f"{random.choice(FIRST_NAMES)} {random.choice(LAST_NAMES)}"
     fame = round(random.gauss(60, 15))
     fame = min(99, max(20, fame))
     salary = round(fame * 0.1, 1)
@@ -30,10 +29,7 @@ def generate_actor(current_year):
 
 # === WRITERS ===
 def generate_writer(current_year=2025):
-    names = [
-        "Jordan Quinn", "Alex Riley", "Casey Wells", "Sam Avery", "Taylor Banks",
-        "Morgan Stone", "Riley James", "Quinn Harper", "Avery Blake", "Charlie West"
-    ]
+    name = f"{random.choice(FIRST_NAMES)} {random.choice(LAST_NAMES)}"
     educations = ["Film School", "Journalism", "Playwriting", "Self-Taught", "MFA Program"]
     experiences = [
         ["Sitcoms", "Sketch Comedy"],
@@ -46,7 +42,6 @@ def generate_writer(current_year=2025):
         "Romance", "Technology", "Family Drama", "Surrealism", "Crime", "Historical", "Adventure", "Philosophy"
     ]
     signature_tags_pool = ["quirky", "emotional", "cerebral", "gritty", "fast-paced", "low-budget", "experimental"]
-    name = random.choice(names)
     specialty = GENRES[random.choice(list(GENRES.keys()))]
     education = random.choice(educations)
     experience = random.choice(experiences)
@@ -77,10 +72,7 @@ def generate_writer(current_year=2025):
 
 # === DIRECTORS ===
 def generate_director(current_year=2025):
-    name = random.choice([
-        "Alex Monroe", "Jamie Kingsley", "Morgan Rivers", "Taylor Chen",
-        "Jordan Clarke", "Riley Foster", "Drew Patel", "Hayden Lee"
-    ])
+    name = f"{random.choice(FIRST_NAMES)} {random.choice(LAST_NAMES)}"
     TAGS = ["visual", "blockbuster", "methodical", "actor-friendly", "gritty", "stylized", "experimental"]
     fame = random.randint(20, 75)
     return {
@@ -125,9 +117,7 @@ STAFF_TAGS = {
 }
 
 def random_name():
-    first = random.choice(["Alex", "Jamie", "Taylor", "Jordan", "Morgan", "Riley", "Cameron", "Drew"])
-    last = random.choice(["Lee", "Martinez", "Nguyen", "Patel", "Smith", "Kim", "Adams", "Khan"])
-    return f"{first} {last}"
+    return f"{random.choice(FIRST_NAMES)} {random.choice(LAST_NAMES)}"
 
 def generate_staff_member(role, year):
     if role not in STAFF_SPECIALTIES:

@@ -1,13 +1,12 @@
 import random
 from personnel import generate_actor
-#from actors import generate_actor
 from calendar import GameCalendar
 from genres import seasonal_bonus
 from scripts import assign_rating, RATINGS
 from library import manage_script_library
 
 class Studio:
-    def __init__(self, name="Player Studio", starting_balance=100.0, year=2025):
+    def __init__(self, name="Player Studio", starting_balance=150.0, year=2025):
         self.name = name
         self.balance = starting_balance  # in millions
         self.scripts = []  # Holds all drafted or shelved scripts
@@ -23,7 +22,32 @@ class Studio:
         self.actor_pool = [generate_actor(year) for _ in range(15)]  # Start with 15 random actors
         self.known_actors = []  # Optional: track actors you've worked with
         self.contracts = {"actors": [], "writers": [], "directors": []}
-     
+
+
+    def evaluate_script(self, script):
+        buzz = script.get("buzz", 0)
+        quality = script.get("potential_quality", script.get("quality", 50))
+        genre_bonus = 0
+
+        # Example: if you want to prioritize certain genres
+        if hasattr(self, "focus_genres") and script["genre"] in self.focus_genres:
+            genre_bonus = 10
+
+        score = (buzz * 1.2) + quality + genre_bonus
+        return round(score, 2)
+
+
+    def choose_script_to_option(self, script_pool):
+        if not script_pool:
+            return None
+
+        scored = [(self.evaluate_script(s), s) for s in script_pool]
+        scored.sort(reverse=True, key=lambda x: x[0])
+        best_score, best_script = scored[0]
+
+        print(f"📝 {best_script['title']} selected for optioning (Score: {best_score})")
+        return best_script
+ 
 
     def produce_movie(self, script, actor, director, calendar, months_ahead=1):
         """
@@ -82,9 +106,11 @@ class Studio:
             "release_date": release_date,
             "box_office": None,
             "monthly_revenue": [],  # Tracks revenue across months
-            "remaining_revenue": 0  # Total left to earn
+            "remaining_revenue": 0,  # Total left to earn
+            "script": script
         }   
-        # Assign a rating based on genreif script["status"] != "approved":
+
+        # Assign a rating based on genre 
         if script["status"] != "approved":
             print(f"❌ Script '{script['title']}' must be approved before production.")
             return None
@@ -172,6 +198,8 @@ class Studio:
         """
         base = movie["quality"] * 0.9
         fame = movie["cast"]["fame"] * 0.5
+        buzz = movie["script"].get("buzz", 0)
+        base = movie["quality"] * 0.9 + buzz * 0.3
         random_bonus = round(random.gauss(10, 5), 2)
         if random_bonus < 0:
             random_bonus = 0

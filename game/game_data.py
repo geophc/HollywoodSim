@@ -78,7 +78,6 @@ SEASONS = {
     10: "fall", 11: "fall", 12: "winter"
 }
 
-
 # ==============================================================================
 # 2. GENRE DATABASE
 # Detailed attributes for each movie genre.
@@ -487,5 +486,16 @@ ADJECTIVES = ["Dark", "Silent", "Lonely", "Burning", "Golden", "Wicked"]
 # ==============================================================================
 # 9. NAMES FOR TALENT GENERATION
 # ==============================================================================
-FIRST_NAMES = ["Taylor", "Morgan", "Jamie", "Alex", "Jordan", "Casey", "Riley", "Quinn", "Drew", "Sam", "Kai", "Rowan"]
-LAST_NAMES = ["Stone", "Ray", "Knight", "Monroe", "Lee", "Wells", "Avery", "Banks", "Clarke", "Foster", "Shaw", "Chen"]
+FIRST_NAMES = [
+    "Taylor", "Morgan", "Jamie", "Alex", "Jordan", "Casey", "Riley", "Quinn", "Drew", "Sam", "Kai", "Rowan",
+    "Cameron", "Skyler", "Shannon", "Robin", "Tracy", "Terry", "Dana", "Leslie", "Jessie", "Kerry", "Devin", "Blake",
+    "Shawn", "Jody", "Chris", "Corey", "Pat", "Lee", "Avery", "Kris", "Reese", "Lane", "Marion", "Toby", "Perry",
+    "Stevie", "Noel", "Frankie", "Kendall", "Hunter", "Elliot", "Brett", "Dallas", "Jamie", "Sage", "Alexis", "Rene"
+]
+LAST_NAMES = [
+    "Stone", "Ray", "Knight", "Monroe", "Lee", "Wells", "Avery", "Banks", "Clarke", "Foster", "Shaw", "Chen",
+    "Harper", "Grant", "Flynn", "Parker", "Reed", "West", "Greene", "Hayes", "Ford", "Drake", "Logan", "Morgan",
+    "Kennedy", "Chase", "Hale", "Page", "Brooks", "Dane", "Quinn", "Rhodes", "Day", "Ross", "Lane", "Vaughn",
+    "Cross", "Blair", "Fox", "Sloan", "Dean", "Beck", "Carson", "Tyler", "Cole", "Adler", "Lowell", "Shields", "Dalton"
+]
+# ==============================================================================]
