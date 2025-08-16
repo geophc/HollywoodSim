@@ -1,6 +1,6 @@
 # genres.py
 import random
-import game_data  # <--- this is key
+import game_data
 
 GENRES = game_data.GENRES
 SEASONS = game_data.SEASONS

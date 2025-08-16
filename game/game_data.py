@@ -499,3 +499,33 @@ LAST_NAMES = [
     "Cross", "Blair", "Fox", "Sloan", "Dean", "Beck", "Carson", "Tyler", "Cole", "Adler", "Lowell", "Shields", "Dalton"
 ]
 # ==============================================================================]
+
+
+# === STAFF ===
+STAFF_SPECIALTIES = {
+    "Editor": ["tight pacing", "montage", "non-linear", "character-focused"],
+    "Cinematographer": ["stylized", "naturalistic", "moody", "grand scale"],
+    "Production Designer": ["futuristic", "historical", "minimalist", "opulent"],
+    "Sound Designer": ["immersive", "realistic", "experimental", "atmospheric"],
+    "Composer": ["orchestral", "electronic", "jazz", "world music"],
+    "Visual Effects Artist": ["CGI", "practical effects", "motion capture", "animation"],
+    "Costume Designer": ["period accurate", "futuristic", "fantasy", "everyday"],
+    "Producer": ["budget management", "scheduling", "resource allocation", "team leadership"],
+    "Script Supervisor": ["continuity", "script analysis", "on-set coordination", "revision tracking"],
+    "Location Manager": ["urban", "rural", "exotic", "studio-based"],
+    "Marketing Manager": ["social media", "traditional", "viral campaigns", "event planning"]
+}
+
+STAFF_TAGS = {
+    "Editor": ["post-production", "cutting room", "final polish"],
+    "Cinematographer": ["lighting", "camera", "visual style"],
+    "Production Designer": ["set design", "props", "world-building"],
+    "Sound Designer": ["audio", "sound effects", "mixing"],
+    "Composer": ["music", "score", "soundtrack"],
+    "Visual Effects Artist": ["CGI", "animation", "special effects"],
+    "Costume Designer": ["wardrobe", "fashion", "character design"],
+    "Producer": ["budget", "scheduling", "team management"],
+    "Script Supervisor": ["continuity", "script management", "on-set"],
+    "Location Manager": ["scouting", "permits", "logistics"],
+    "Marketing Manager": ["promotion", "advertising", "public relations"]
+}

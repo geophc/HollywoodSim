@@ -1,9 +1,13 @@
+#personnel.py
+
 
 import random
 import game_data
 
 from game_data import FIRST_NAMES, LAST_NAMES
 GENRES = game_data.GENRES
+
+
 
 # === ACTORS ===
 def generate_actor(current_year):
@@ -84,7 +88,7 @@ def generate_director(current_year=2025):
         "education": random.choice(["Film School", "MFA", "Self-Taught"]),
         "film_history": [],
         "genre_focus": random.choice(list(GENRES.keys())),
-        "style_tags": random.sample(TAGS, k=2)
+        "tags": random.sample(TAGS, k=2)
     }
 
 # === STAFF ===
@@ -133,3 +137,175 @@ def generate_staff_member(role, year):
         "year_joined": year,
         "education": random.choice(["Film School", "Apprenticeship", "Self-Taught", "Conservatory"])
     }
+
+# === CASTING LOGIC (moved from casting.py) ===
+class CastingPool:
+    def __init__(self):
+        self.actors = []
+        self.writers = []
+        self.directors = []
+        self.staff = []
+
+    def add_actor(self, actor):
+        self.actors.append(actor)
+
+    def add_writer(self, writer):
+        self.writers.append(writer)
+
+    def add_director(self, director):
+        self.directors.append(director)
+
+    def add_staff(self, staff_member):
+        self.staff.append(staff_member)
+
+    def get_actor_choices(self, count=3):
+        return random.sample(self.actors, k=min(count, len(self.actors)))
+
+    def get_writer_choices(self, count=3):
+        return random.sample(self.writers, k=min(count, len(self.writers)))
+
+    def get_director_choices(self, count=3):
+        return random.sample(self.directors, k=min(count, len(self.directors)))
+
+    def get_staff_choices(self, count=3):
+        return random.sample(self.staff, k=min(count, len(self.staff)))
+
+    def age_all_talent(self):
+        for actor in self.actors:
+            actor["age"] += 1
+        for writer in self.writers:
+            writer["age"] += 1
+        for director in self.directors:
+            director["age"] += 1
+        for staff_member in self.staff:
+            staff_member["experience"] += 1
+class CastingManager:
+    def __init__(self):
+        self.collaborations = {}
+
+    def record_collaboration(self, actor, movie):
+        actor_key = actor["name"]
+        if actor_key not in self.collaborations:
+            self.collaborations[actor_key] = []
+        self.collaborations[actor_key].append({
+            "title": movie["title"],
+            "quality": movie["quality"],
+            "box_office": movie["box_office"]
+        })
+
+        if "writer" in movie:
+            pair_key = (actor["name"], movie["writer"]["name"])
+            if pair_key not in self.collaborations:
+                self.collaborations[pair_key] = []
+            self.collaborations[pair_key].append({
+                "title": movie["title"],
+                "quality": movie["quality"],
+                "box_office": movie["box_office"]
+            })
+
+    def get_history(self, actor_name):
+        records = self.collaborations.get(actor_name, [])
+        if not records:
+            return None
+        avg_quality = sum(r["quality"] for r in records) / len(records)
+        avg_box_office = sum(r["box_office"] for r in records) / len(records)
+        return {
+            "count": len(records),
+            "avg_quality": round(avg_quality, 1),
+            "avg_box_office": round(avg_box_office, 1)
+        }
+
+    def get_collaboration_count(self, actor, writer):
+        key = (actor["name"], writer["name"])
+        return len(self.collaborations.get(key, []))
+
+    def get_average_quality(self, actor, writer):
+        key = (actor["name"], writer["name"])
+        history = self.collaborations.get(key, [])
+        if not history:
+            return None
+        return round(sum(f["quality"] for f in history) / len(history), 2)
+
+    def get_average_box_office(self, actor, writer):
+        key = (actor["name"], writer["name"])
+        history = self.collaborations.get(key, [])
+        if not history:
+            return None
+        return round(sum(f["box_office"] for f in history) / len(history), 2)
+
+    def describe_pairing(self, actor, writer):
+        count = self.get_collaboration_count(actor, writer)
+        if count == 0:
+            return "🆕 First-time pairing."
+        avg_quality = self.get_average_quality(actor, writer)
+        avg_box = self.get_average_box_office(actor, writer)
+        return (
+            f"🎞️  {actor['name']} and {writer['name']} have collaborated {count}x. "
+            f"Avg Quality: {avg_quality}, Avg Box Office: ${avg_box}M"
+        )
+    
+
+# === TALENT POOL (Unified) ===
+class TalentPool:
+    """
+    Unified talent pool that manages actors, writers, directors, and staff.
+    Wraps around existing generation functions to produce starting pools.
+    """
+
+    def __init__(self):
+        self.actors = []
+        self.writers = []
+        self.directors = []
+        self.staff = []
+
+    # === Generation Methods ===
+    def generate_starting_actors(self, count, current_year=2025):
+        for _ in range(count):
+            self.actors.append(generate_actor(current_year))
+
+    def generate_starting_writers(self, count, current_year=2025):
+        for _ in range(count):
+            self.writers.append(generate_writer(current_year))
+
+    def generate_starting_directors(self, count, current_year=2025):
+        for _ in range(count):
+            self.directors.append(generate_director(current_year))
+
+    def generate_starting_staff(self, count, current_year=2025):
+        roles = list(STAFF_SPECIALTIES.keys())
+        for _ in range(count):
+            role = random.choice(roles)
+            self.staff.append(generate_staff_member(role, current_year))
+
+    # === Accessors ===
+    def get_all_talent(self):
+        return {
+            "actors": self.actors,
+            "writers": self.writers,
+            "directors": self.directors,
+            "staff": self.staff
+        }
+
+    def get_random_talent(self, role, count=3):
+        if role == "actor":
+            return random.sample(self.actors, k=min(count, len(self.actors)))
+        elif role == "writer":
+            return random.sample(self.writers, k=min(count, len(self.writers)))
+        elif role == "director":
+            return random.sample(self.directors, k=min(count, len(self.directors)))
+        elif role == "staff":
+            return random.sample(self.staff, k=min(count, len(self.staff)))
+        else:
+            raise ValueError(f"Unknown role type: {role}")
+
+    # === Aging Logic ===
+    def age_all(self):
+        for actor in self.actors:
+            actor["age"] += 1
+        for writer in self.writers:
+            writer["age"] += 1
+        for director in self.directors:
+            director["age"] += 1
+        for staff_member in self.staff:
+            staff_member["experience"] += 1
+
