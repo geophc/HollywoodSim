@@ -3,6 +3,7 @@
 import random
 import events
 
+
 from scripts import generate_script, finalize_script, rewrite_script
 from personnel import (
     generate_actor,
@@ -15,7 +16,10 @@ from personnel import (
 )
 from studio import Studio
 from calendar import GameCalendar
-from contracts import find_active_contracts, print_roster
+from contracts import (
+    find_active_contracts,
+    print_roster,
+)
 from library import manage_script_library
 from market import init_market, refresh_market, visit_market
 from game_data import STAFF_SPECIALTIES
@@ -147,10 +151,25 @@ def calculate_script_buzz(script, calendar=None):
         trend_bonus += 5
     return int((base_quality * 0.3) + tag_bonus + appeal_bonus + writer_bonus + trend_bonus)
 
+def get_contracted_writers(studio):
+    return [
+        c for c in studio.contracts.get("writers", [])
+        if "person" in c and "name" in c["person"]
+    ]
+
+ 
 
 def inhouse_script_production(scripts):
     """Displays in-house scripts and prompts the user to greenlight one."""
     print("\n🎞️ Production Slate Review")
+    
+    # Only show scripts that are finalized and not yet in production
+    available_scripts = [s for s in scripts if s.get("status") == "finalized"]
+
+    if not available_scripts:
+        print("📭 No finalized scripts available for production.")
+        return None
+
     print("Available In-House Scripts:")
 
     def get_appeal_level(score):
@@ -168,7 +187,7 @@ def inhouse_script_production(scripts):
         else:
             return "Cold"
 
-    for i, s in enumerate(scripts, 1):
+    for i, s in enumerate(available_scripts, 1):
         potential = int(s["appeal"] * 100)
         appeal = get_appeal_level(s["appeal"])
         buzz = buzz_rating(s["appeal"])
@@ -184,10 +203,18 @@ def inhouse_script_production(scripts):
 
     print("\n📌 Appeal Levels: Low (<50), Medium (50–74), High (75+)")
     print("📡 Buzz Ratings: 🔥 Hot (85+), Trending (70–84), Lukewarm (50–69), Cold (<50)")
-    return input_number(
+
+    choice = input_number(
         "Enter number to greenlight (or press [enter] to skip): ",
-        [str(i + 1) for i in range(len(scripts))],
+        [str(i + 1) for i in range(len(available_scripts))],
     )
+
+    if choice is not None:
+        selected = available_scripts[int(choice) - 1]
+        selected["status"] = "in_production"  # mark script as moved into production
+        return selected
+    
+    return None
 
 
 # --- in main.py ---
@@ -211,7 +238,7 @@ def manage_scripts(managed_scripts, casting_pool, calendar, studio):
     action = input("Type [f] to finalize or [r] to rewrite: ").strip().lower()
 
     if action == "f":
-        finalize_script(selected, studio, calendar, managed_scripts)
+        finalize_script(selected, studio, calendar)
 
 
     elif action == "r":
@@ -504,12 +531,38 @@ def hollywood_sim():
         else:
             run_market_phase(market_pool, casting_pool, calendar, studio)
 
-            # Script Development Phase
-            writers = casting_pool.get_writer_choices(3)
-            scripts = [generate_script(calendar, writer=w) for w in writers]
-            script_idx = inhouse_script_production(scripts)
+            # --- Script Development Phase ---
+            writers = get_contracted_writers(studio)
+
+            if not writers:
+                print("You have no contracted writers! Hire one before generating a script.")
+            else:
+                # Let player choose a writer safely
+                print("Select a contracted writer to assign the script to (or press Enter to skip):")
+                for i, w in enumerate(writers, 1):
+                    print(f"{i}. {w['person']['name']} (Fame {w['person']['fame']}, Style {', '.join(w['person']['signature_tags'])})")
+
+                selected_writer = None
+                while True:
+                    choice_str = input("Choose writer: ").strip()
+                    if choice_str == "":
+                        print("⏩ Skipped script assignment this month.")
+                        break
+                    if choice_str.isdigit() and 1 <= int(choice_str) <= len(writers):
+                        selected_writer = writers[int(choice_str) - 1]["person"]
+                        break
+                    print(f"⚠️ Invalid choice. Enter a number between 1 and {len(writers)}, or press Enter to skip.")
+
+                # Generate script only if a writer was selected
+                if selected_writer:
+                    script = generate_script(calendar, selected_writer)
+                    studio.scripts.append(script)
+                    print(f"✅ New script '{script['title']}' written by {selected_writer['name']}!")
+
+
+            script_idx = inhouse_script_production(studio.scripts)
             if script_idx is not None:
-                studio.scripts.append(scripts[script_idx - 1])
+                selected_script = studio.scripts[script_idx - 1]
 
             # Script Management Phase
             scheduled_titles = {m["title"] for m in studio.scheduled_movies}

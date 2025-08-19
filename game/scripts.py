@@ -3,9 +3,7 @@
 import random
 import game_data
 
-
-# Centralized data for movie ratings and their restrictions by genre.
-
+# --- Ratings system ---
 RATINGS = {
     "G": {"min_age": 0, "max_audience": 1.00},
     "PG": {"min_age": 10, "max_audience": 0.90},
@@ -30,14 +28,12 @@ GENRE_RATING_LIMITS = {
 }
 
 
+# --- Rating assignment ---
 def assign_rating(tags, genre):
-    """
-    Determines a script's movie rating based on its tags and genre.
-    """
     adult_tags = {"sexual", "explicit", "violent", "dark", "gritty"}
     family_tags = {"family", "emotional", "musical", "lighthearted"}
 
-    rating = "PG-13"  # Start with a neutral default
+    rating = "PG-13"
 
     if any(tag in tags for tag in adult_tags):
         rating = "R"
@@ -48,90 +44,43 @@ def assign_rating(tags, genre):
     elif genre == "Family":
         rating = "G"
 
-    # Ensure the assigned rating is allowed for the genre
-    allowed_ratings = GENRE_RATING_LIMITS.get(genre, set(RATINGS.keys()))
-    if rating not in allowed_ratings:
-        # Fallback: Pick the highest (most restrictive) allowed rating
-        valid_ratings = sorted(allowed_ratings, key=lambda r: RATINGS[r]["min_age"], reverse=True)
-        rating = valid_ratings[0] if valid_ratings else "PG-13"
+    allowed = GENRE_RATING_LIMITS.get(genre, set(RATINGS.keys()))
+    if rating not in allowed:
+        rating = sorted(allowed, key=lambda r: RATINGS[r]["min_age"], reverse=True)[0]
 
     return rating
 
 
-def generate_script_buzz(script):
-    base = 10  # minimum baseline buzz
-    buzz = base
-
-    # Quality and potential influence
-    buzz += int(script.get("potential_quality", 50) / 10)
-
-    # Genre effects
-    genre = script.get("genre", "")
-    writer = script.get("writer", {})
-    if genre in ["Horror", "Thriller", "Action"]:
-        buzz += 5
-    if genre == writer.get("specialty"):
-        buzz += 3
-
-    # Tag influence
-    tags = script.get("tags", [])
-    if "fresh_voice" in tags:
-        buzz += 4
-    if "based_on_book" in tags or "true_story" in tags:
-        buzz += 5
-    if "controversial" in tags:
-        buzz += 6
-    if "debut_writer" in tags:
-        buzz += 2
-
-    # Random market noise
-    buzz += random.randint(-3, 3)
-
-    return max(0, buzz)
-
+# --- Generate a script from a contracted writer ---
 def generate_script(calendar, writer, source_key=None):
     """
-    Generates a script based primarily on the contracted writer's specialty, skills, and style.
-    Source material is optional; writer characteristics are prioritized.
+    Generates a script only if a writer is contracted.
+    Script attributes are heavily influenced by writer's specialty, style, and skill.
     """
     current_year = calendar.year
+    if not writer:
+        raise ValueError("Cannot generate a script without a writer.")
+
+    # --- Source material ---
     source_key = source_key or random.choice(list(game_data.SOURCE_TYPES.keys()))
     source_data = game_data.SOURCE_TYPES[source_key]
 
-    # --- 1. Determine Genre (prioritize writer specialty) ---
+    # --- Genre driven by writer specialty ---
     writer_specialty = writer.get("specialty")
     possible_genres = [g for g in source_data["associated_genres"] if g == writer_specialty]
-    if not possible_genres:
-        possible_genres = source_data["associated_genres"]
-    genre = random.choice(possible_genres)
+    genre = random.choice(possible_genres) if possible_genres else random.choice(source_data["associated_genres"])
     genre_data = game_data.GENRES[genre]
 
-    # --- 2. Generate a Thematic Title ---
-    genre_format_bias = {
-        "Horror": ["{adjective} {noun}", "{noun} of the {noun2}"],
-        "Romance": ["The {noun} {mid_phrase} {place}", "{prefix} {noun}"],
-        "Sci-Fi": ["{prefix} {noun} {mid_phrase} {place}", "{noun} from the {place}"],
-        "Thriller": ["{adjective} {noun}", "{noun} in the {place}"],
-        "Family": ["{noun} of {place}", "{adjective} {noun}"],
-        "Comedy": ["{noun} {mid_phrase} {place}", "{prefix} {noun}"],
-        "Drama": ["{noun} {mid_phrase} {place}", "{prefix} {noun}"],
-        "Action": ["{adjective} {noun}", "{noun} of the {place}"],
-        "Documentary": ["{noun} of {place}", "{adjective} {noun}"],
-        "Musical": ["{noun} {mid_phrase} {place}", "{prefix} {noun}"],
-        "Animation": ["{noun} {mid_phrase} {place}", "{prefix} {noun}"],
-        "Western": ["{noun} of the {place}", "{adjective} {noun}"],
+    # --- Title generation ---
+    title_formats = {
         "default": ["{prefix} {noun}", "{noun} of the {noun2}"]
     }
-
     title_parts = game_data.SCRIPT_TITLES_BY_GENRE.get(genre, {
         "prefixes": ["The"],
         "nouns": ["Story"],
         "noun2": ["Dream"]
     })
-
-    structure_pool = genre_format_bias.get(genre, genre_format_bias["default"])
-    structure = random.choice(structure_pool)
-
+    structure = random.choice(title_formats.get(genre, title_formats["default"]))
     title_data = {
         "prefix": random.choice(title_parts.get("prefixes", ["The"])),
         "noun": random.choice(title_parts.get("nouns", ["Story"])),
@@ -140,48 +89,44 @@ def generate_script(calendar, writer, source_key=None):
         "place": random.choice(game_data.PLACES),
         "adjective": random.choice(game_data.ADJECTIVES)
     }
-
     try:
         title = structure.format(**title_data).title()
-    except KeyError as e:
+    except KeyError:
         title = f"{title_data['prefix']} {title_data['noun']}"
 
-    # --- 3. Determine Tags (writer interests + genre tags + theme) ---
+    # --- Tags influenced by writer and genre ---
     genre_tags = random.sample(genre_data["common_tags"], k=2)
     writer_tags = random.sample(writer.get("tags", []), k=min(2, len(writer.get("tags", []))))
-    chosen_theme_key = random.choice(list(game_data.THEMES.keys()))
-    chosen_theme = game_data.THEMES[chosen_theme_key]
+    theme_key = random.choice(list(game_data.THEMES.keys()))
+    theme = game_data.THEMES[theme_key]["name"]
+    tags = list(set(genre_tags + writer_tags + [theme]))
 
-    tags = list(set(genre_tags + writer_tags + [chosen_theme["name"]]))
-
-    # --- 4. Assign Rating ---
+    # --- Rating ---
     rating = assign_rating(tags, genre)
 
-    # --- 5. Calculate Potential Quality based on writer skill and experience ---
-    potential_quality = 40  # base
-    specialty_bonus = 15 if writer_specialty == genre else 5
-    education_bonus = 5 if writer.get("education") in ["Film School", "MFA Program"] else 0
-    experience_bonus = min((current_year - writer.get("debut_year", current_year)) * 0.5, 10)
+    # --- Potential quality based on writer skill and experience ---
+    potential_quality = 40
+    if writer_specialty == genre:
+        potential_quality += 15
+    potential_quality += 5 if writer.get("education") in ["Film School", "MFA Program"] else 0
+    potential_quality += min((current_year - writer.get("debut_year", current_year)) * 0.5, 10)
     skill_multiplier = writer.get("skill_level", 1.0)
-
-    potential_quality += specialty_bonus + education_bonus + experience_bonus
     potential_quality = round(max(30, min(100, potential_quality * skill_multiplier)))
 
-    # Initial draft quality
     initial_quality = round(potential_quality * random.uniform(0.6, 0.85))
     appeal = round(random.uniform(0.3, 1.0), 2)
 
-    # --- 6. Budget class ---
+    # --- Budget class ---
     budget_class = random.choice(genre_data["budget_affinity"])
 
-    # --- 7. Assemble Script Dict ---
+    # --- Assemble script dict ---
     script = {
         "title": title,
         "genre": genre,
         "source": source_data["name"],
         "rating": rating,
         "tags": tags,
-        "theme": chosen_theme["name"],
+        "theme": theme,
         "writer": writer,
         "status": "first_draft",
         "quality": initial_quality,
@@ -194,7 +139,7 @@ def generate_script(calendar, writer, source_key=None):
         "budget_class": budget_class
     }
 
-    # --- 8. Calculate Buzz based on writer style, genre, and tags ---
+    # --- Buzz based on writer style and alignment ---
     buzz = 10 + int(potential_quality / 10)
     if genre == writer_specialty:
         buzz += 5
@@ -208,38 +153,49 @@ def generate_script(calendar, writer, source_key=None):
     return script
 
 
-def rewrite_script(script, new_writer, calendar):
+# --- Rewrite scripts ---
+def rewrite_script(script, writer, calendar):
     """
-    Improves a script's quality through a rewrite pass by a new writer.
+    Rewrites a script using the specified contracted writer.
+    Improvements are based on writer specialty, tag overlap, and experience.
     """
-    current_year = calendar.year
     if script["status"] == "approved":
-        print(f"Cannot rewrite '{script['title']}', it is already approved.")
+        print(f"Cannot rewrite '{script['title']}', already approved.")
         return script
 
-    improvement_points = 0
-    if new_writer:
-        if script["genre"] == new_writer.get("specialty"):
-            improvement_points += 10
-        overlap_tags = set(script["tags"]) & set(new_writer.get("tags", []))
-        improvement_points += len(overlap_tags) * 4
-        career_length = current_year - new_writer.get("debut_year", current_year)
-        improvement_points += min(career_length * 0.25, 8)
+    improvement = 0
+    if writer:
+        if writer.get("specialty") == script["genre"]:
+            improvement += 10
+        overlap = set(script["tags"]) & set(writer.get("tags", []))
+        improvement += len(overlap) * 4
+        career_bonus = min((calendar.year - writer.get("debut_year", calendar.year)) * 0.25, 8)
+        improvement += career_bonus
 
     draft_penalty = (script["draft_number"] - 1) * 2
-    net_improvement = max(0, improvement_points - draft_penalty)
+    net = max(0, improvement - draft_penalty)
     quality_gap = script["potential_quality"] - script["quality"]
-    actual_improvement = min(net_improvement, quality_gap)
-    script["quality"] = min(100, round(script["quality"] + actual_improvement))
+    actual_improve = min(net, quality_gap)
+    script["quality"] = min(100, round(script["quality"] + actual_improve))
     script["draft_number"] += 1
-    if new_writer["name"] not in script["rewrite_history"]:
-        script["rewrite_history"].append(new_writer["name"])
+    if writer["name"] not in script["rewrite_history"]:
+        script["rewrite_history"].append(writer["name"])
 
-    print(f"'{script['title']}' rewritten by {new_writer['name']}. Quality improved to {script['quality']}.")
+    # Recalculate buzz
+    buzz = 10 + int(script["quality"] / 10)
+    if writer.get("specialty") == script["genre"]:
+        buzz += 5
+    script["buzz"] = max(0, buzz)
+
+    print(f"'{script['title']}' rewritten by {writer['name']}. Quality is now {script['quality']}.")
     return script
 
 
+# --- Finalize scripts ---
 def finalize_script(script, studio, calendar, draft_pool=None):
+    """
+    Marks a script as approved and ready for production.
+    """
     script["status"] = "approved"
     script["finalized_turn"] = (calendar.year, calendar.month)
 
@@ -248,8 +204,7 @@ def finalize_script(script, studio, calendar, draft_pool=None):
 
     studio.finalized_scripts.append(script)
 
-    if draft_pool is not None and script in draft_pool:
-        draft_pool.remove(script)  # ✅ This should remove it
+    if draft_pool and script in draft_pool:
+        draft_pool.remove(script)
 
     print(f"\n✅ Script '{script['title']}' has been finalized and is ready for production!")
-

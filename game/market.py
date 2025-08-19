@@ -76,28 +76,47 @@ def view_market(pool):
             return "Lukewarm"
         return "Cold"
 
+    # --- Scripts Section ---
     for i, script in enumerate(pool.scripts, 1):
         appeal = appeal_level(script["potential_quality"])
         buzz = buzz_rating(script["potential_quality"])
         print(f"{i}. {script['title']} ({script['genre']}, Rated: {script['rating']})")
         print(f"   ✨ Appeal: {appeal} | Buzz: {buzz} | Potential: {script['potential_quality']} | Price: ${script['value']}M")
+        print(f"   🏷️ Tags: {', '.join(script.get('tags', []))}")
+        print(f"   ✍️ Writer: {script['writer']['name'] if script.get('writer') else 'TBD'}")
 
     print("\n📌 Appeal Levels: Low (<50), Medium (50–74), High (75+)")
     print("📡 Buzz Ratings: 🔥 Hot (85+), Trending (70–84), Lukewarm (50–69), Cold (<50)")
 
+    # --- Talent Section ---
     def print_top(talent_list, title):
         if not talent_list:
-            print(f"No {title} available.")
+            print(f"\nNo {title} available.")
             return
         print(f"\nTop Available {title}:")
         for t in sorted(talent_list, key=lambda x: -x.get("fame", 0))[:5]:
             tags = ', '.join(t.get("tags", []))
-            print(f"- {t['name']} (Fame: {t.get('fame',0)}, Tags: {tags})")
+            info_lines = [
+                f"- {t['name']} (Fame: {t.get('fame',0)})",
+                f"   Age: {t.get('age', 'N/A')}, Salary: ${t.get('salary', 0)}M",
+            ]
+            if "specialty" in t:
+                info_lines.append(f"   Specialty: {t['specialty']}")
+            if "experience" in t:
+                info_lines.append(f"   Experience: {t['experience']} years")
+            if "education" in t:
+                info_lines.append(f"   Education: {t['education']}")
+            if "signature_tags" in t:
+                info_lines.append(f"   Signature Tags: {', '.join(t['signature_tags'])}")
+            if "genre_focus" in t:
+                info_lines.append(f"   Genre Focus: {t['genre_focus']}")
+            print("\n".join(info_lines))
 
     print_top(pool.actors, "Actors")
     print_top(pool.directors, "Directors")
     print_top(pool.writers, "Writers")
     print_top(pool.staff, "Staff Members")
+
 
 
 def buy_script_from_market(pool, studio):
@@ -150,7 +169,16 @@ def sign_talent_from_market(pool, studio):
         return
 
     for i, c in enumerate(candidates[:5], 1):
-        print(f"{i}. {c['name']} — Fame: {c.get('fame', 0)}, Salary: ${c.get('salary', 1.0)}M")
+        if role == "writers":
+            specialty = c.get("specialty", {}).get("name", "General")
+            interests = ", ".join(c.get("interests", [])) or "None"
+            tags = ", ".join(c.get("signature_tags", [])) or "None"
+            print(f"{i}. {c['name']} — Fame: {c.get('fame', 0)}, Salary: ${c.get('salary', 1.0)}M")
+            print(f"   ✍️ Genre/Specialty: {specialty}")
+            print(f"   🎯 Interests: {interests}")
+            print(f"   🏷️ Signature Tags: {tags}")
+        else:
+            print(f"{i}. {c['name']} — Fame: {c.get('fame', 0)}, Salary: ${c.get('salary', 1.0)}M")
 
     idx = input("Select number to sign: ").strip()
     if not idx.isdigit() or not (1 <= int(idx) <= len(candidates)):
@@ -169,7 +197,6 @@ def sign_talent_from_market(pool, studio):
     pool.__getattribute__(role).remove(selected)
 
     print(f"✅ Signed {selected['name']} for {months} months.")
-
 
 
 def visit_market(studio, market):

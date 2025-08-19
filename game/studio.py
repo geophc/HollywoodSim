@@ -10,7 +10,7 @@ class Studio:
     def __init__(self, name="Player Studio", starting_balance=150.0, year=2025):
         self.name = name
         self.balance = starting_balance  # in millions
-        self.scripts = []          # Scripts owned by the studio
+        self.scripts = []          
         self.script_library = []
         self.scheduled_movies = []
         self.released_movies = []
