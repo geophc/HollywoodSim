@@ -4,7 +4,7 @@ import random
 import events
 
 
-from scripts import generate_script, finalize_script, rewrite_script
+from scripts import generate_script, finalize_script, rewrite_script, generate_script_description
 from personnel import (
     generate_actor,
     generate_writer,
@@ -160,12 +160,11 @@ def get_contracted_writers(studio):
  
 
 def inhouse_script_production(scripts):
-    """Displays in-house scripts and prompts the user to greenlight one."""
+    """Displays finalized in-house scripts for potential production."""
     print("\n🎞️ Production Slate Review")
-    
+
     # Only show scripts that are finalized and not yet in production
     available_scripts = [s for s in scripts if s.get("status") == "finalized"]
-
     if not available_scripts:
         print("📭 No finalized scripts available for production.")
         return None
@@ -188,33 +187,29 @@ def inhouse_script_production(scripts):
             return "Cold"
 
     for i, s in enumerate(available_scripts, 1):
-        potential = int(s["appeal"] * 100)
         appeal = get_appeal_level(s["appeal"])
         buzz = buzz_rating(s["appeal"])
-        writer = s["writer"]
+        writer = s.get("writer", {"name": "Unknown", "specialty": {"name": "N/A"}, "interests": [], "education": "N/A"})
         print(f"{i}. {s['title']} ({s['genre']}, Rated: {s['rating']})")
-        print(
-            f"   ✨ Appeal: {appeal} | Buzz: {buzz} | Potential: {potential} | Budget Class: {s['budget_class']}"
-        )
-        print(f"   🏷️ Tags: {', '.join(s['tags'])}")
-        print(
-            f"   ✍️ Writer: {writer['name']} ({writer['specialty']['name']}) | Interests: {', '.join(writer['interests'])} | School: {writer['education']}"
-        )
+        print(f"   ✨ Appeal: {appeal} | Buzz: {buzz} | Budget Class: {s['budget_class']}")
+        print(f"   🏷️ Tags: {', '.join(s['tags'] or ['None'])}")
+        print(f"   ✍️ Writer: {writer['name']} ({writer['specialty']['name']}) | Interests: {', '.join(writer['interests'])} | School: {writer['education']}")
 
     print("\n📌 Appeal Levels: Low (<50), Medium (50–74), High (75+)")
     print("📡 Buzz Ratings: 🔥 Hot (85+), Trending (70–84), Lukewarm (50–69), Cold (<50)")
 
     choice = input_number(
         "Enter number to greenlight (or press [enter] to skip): ",
-        [str(i + 1) for i in range(len(available_scripts))],
+        [str(i + 1) for i in range(len(available_scripts))]
     )
 
     if choice is not None:
-        selected = available_scripts[int(choice) - 1]
+        selected = available_scripts[choice - 1]
         selected["status"] = "in_production"  # mark script as moved into production
         return selected
-    
+
     return None
+
 
 
 # --- in main.py ---
@@ -225,10 +220,10 @@ def manage_scripts(managed_scripts, casting_pool, calendar, studio):
 
     print("\n📚 Script Management:")
     for i, s in enumerate(managed_scripts, 1):
-        print(
-            f"{i}. {s['title']} ({s['genre']}, Draft {s['draft_number']}) "
-            f"— Status: {s['status']} | Quality: {s['quality']}/{s['potential_quality']}"
-        )
+        desc = s.get("description") or generate_script_description(s)
+        print(f"{i}. {s['title']} ({s['genre']}, Draft {s['draft_number']})")
+        print(f"   📝 Status: {s['status']} | Quality: {s['quality']}/{s['potential_quality']}")
+        print(f"   📖 {desc}")
 
     choice = input("Enter script number to manage or [Enter] to skip: ").strip()
     if not choice or not choice.isdigit():
@@ -239,7 +234,6 @@ def manage_scripts(managed_scripts, casting_pool, calendar, studio):
 
     if action == "f":
         finalize_script(selected, studio, calendar)
-
 
     elif action == "r":
         signed_writers = [
@@ -264,6 +258,7 @@ def manage_scripts(managed_scripts, casting_pool, calendar, studio):
 
 
 
+
 def display_scripts_for_production(scripts):
     """Displays scripts that are approved and ready for production."""
     # The 'scripts' list is now passed in directly, so we no longer need the old logic to find them.
@@ -285,7 +280,7 @@ def display_scripts_for_production(scripts):
         print(f"   ✨ Appeal: {script.get('appeal', 0.0):.2f} | Buzz: {buzz} | Budget: {budget_desc}")
         print(f"   🏷️ Tags: {', '.join(script.get('tags', []) or ['None'])}")
         print(f"   ✍️ Writer: {writer.get('name', 'Unknown')} ({writer.get('specialty', {}).get('name', 'N/A')})")
-
+        print(f"   📖 {script.get('description', generate_script_description(script))}")
 
 def produce_film(studio, script, calendar, casting_pool, casting_manager):
     """
@@ -454,6 +449,40 @@ def print_actor_recap(actors):
         print(f"🎬 Films: {len(films)} | Avg Quality: {avg_quality:.1f} | Avg Box Office: ${avg_box_office:.1f}M")
         for f in films:
             print(f"   🎬 {f['title']} ({f['year']}) - Quality: {f['quality']}, Earnings: ${f['box_office']}M")
+
+
+def print_writer_recap(scripts):
+    """Prints a recap of writers who contributed scripts this year, regardless of being hired."""
+    print("\n🖋️ Writer Contribution Recap:")
+
+    writer_stats = {}
+
+    for s in scripts:
+        writer = s.get("writer")
+        if not writer:
+            continue
+        name = writer["name"]
+        if name not in writer_stats:
+            writer_stats[name] = {
+                "scripts": 0,
+                "avg_quality": 0,
+                "genres": set(),
+                "appeal_sum": 0,
+            }
+        writer_stats[name]["scripts"] += 1
+        writer_stats[name]["avg_quality"] += s.get("quality", 0)
+        writer_stats[name]["appeal_sum"] += s.get("appeal", 0)
+        writer_stats[name]["genres"].add(s.get("genre", "Unknown"))
+
+    for name, stats in writer_stats.items():
+        count = stats["scripts"]
+        avg_quality = stats["avg_quality"] / count
+        avg_appeal = stats["appeal_sum"] / count
+        genres = ", ".join(stats["genres"])
+        print(
+            f"✍️ {name} — Scripts: {count}, Avg Quality: {avg_quality:.1f}, "
+            f"Avg Appeal: {avg_appeal:.2f}, Genres: {genres}"
+        )
 
 
 def print_talent_recap(talent_list, role_emoji, role_title):

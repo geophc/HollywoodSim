@@ -1,4 +1,8 @@
 # library.py
+import random
+from game_data import SCRIPT_RESALE
+
+
 
 def manage_script_library(studio):
     print("\n\U0001F4DA Script Library Options:")
@@ -35,15 +39,15 @@ def manage_script_library(studio):
             return
         print("\n\U0001F5C3️ Scripts on the Shelf:")
         for s in studio.script_library:
-            print(f"- {s['title']} (Potential: {s['potential_quality']}, Status: {s['status']})")
+            value = get_script_resale_value(s, studio.calendar)
+            print(f"- {s['title']} (Potential: {s['potential_quality']}, Status: {s['status']}, Value: ${value}M)")
 
-    elif choice == "3":
         if not studio.script_library:
             print("\U0001F5D1️ Shelf is empty. Nothing to sell.")
             return
         total = 0
         for script in studio.script_library:
-            value = round(script["potential_quality"] * 0.2, 2)
+            value = get_script_resale_value(script, studio.calendar)
             total += value
         studio.cash += total
         print(f"\U0001F4B0 Sold {len(studio.script_library)} scripts for ${total:.2f}M.")
@@ -51,3 +55,14 @@ def manage_script_library(studio):
 
     else:
         print("Invalid input. Returning to game.")
+
+
+def get_script_resale_value(script, calendar=None):
+    """Calculates current resale value of a shelved script."""
+    base = SCRIPT_RESALE["base_multiplier"]
+    volatility = random.uniform(-SCRIPT_RESALE["volatility"], SCRIPT_RESALE["volatility"])
+    genre_bonus = SCRIPT_RESALE["genre_bonus"].get(script["genre"], 0)
+
+    multiplier = base + volatility + genre_bonus
+    value = round(script["potential_quality"] * multiplier, 2)
+    return max(value, 0.1)  # ensure minimum floor

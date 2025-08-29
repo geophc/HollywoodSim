@@ -529,3 +529,22 @@ STAFF_TAGS = {
     "Location Manager": ["scouting", "permits", "logistics"],
     "Marketing Manager": ["promotion", "advertising", "public relations"]
 }
+
+
+# ======================================================================
+# 10. SCRIPT RESALE VALUES
+# Defines resale multipliers based on genre demand and market volatility
+# ======================================================================
+SCRIPT_RESALE = {
+    "base_multiplier": 0.2,   # default baseline (20%)
+    "volatility": 0.1,        # range of fluctuation (±10%)
+    "genre_bonus": {          # genres that spike more often
+        "Action": 0.05,
+        "Romance": 0.1,
+        "Drama": 0.15,
+        "Horror": -0.05,
+        "Comedy": 0.0
+    }
+}
+
+

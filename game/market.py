@@ -1,11 +1,10 @@
 # market.py
 
 import random
-import game_data
 from personnel import generate_actor, generate_writer, generate_director, generate_staff_member
 from scripts import generate_script
-from game_data import SEASONS, STAFF_SPECIALTIES
 from contracts import create_contract
+from game_data import SEASONS, STAFF_SPECIALTIES
 
 class MarketPool:
     def __init__(self):
@@ -217,8 +216,6 @@ def visit_market(studio, market):
         else:
             print("🛍️ Leaving the Free Market and returning to the studio.")
             break
-
-
 
 def adjust_market_values_by_season(pool, season):
     genre_multipliers = SEASONS.get(season, {}).get("genre_boosts", {})
