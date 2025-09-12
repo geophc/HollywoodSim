@@ -21,8 +21,11 @@ from contracts import (
     print_roster,
 )
 from library import manage_script_library
-from market import init_market, refresh_market, visit_market
+from market import init_market, refresh_market, visit_market, adjust_market_prices
 from game_data import STAFF_SPECIALTIES
+from draft_production import draft_production
+from post_production import run_post_production_phase
+from rivals import RivalStudio
 
 
 # --- Utility Functions ---
@@ -132,85 +135,11 @@ def run_market_phase(market_pool, casting_pool, calendar, studio):
     if roster_choice == "view_roster":
         print_roster(studio)
 
-
-def calculate_script_buzz(script, calendar=None):
-    """Calculates the buzz rating for a given script."""
-    base_quality = script.get("potential_quality", 50)
-    tag_bonus = len(script.get("tags", [])) * 2
-    appeal_bonus = int((script.get("appeal", 0.5)) * 10)
-    writer_bonus = 0
-    writer = script.get("writer", {})
-    if writer:
-        specialty = writer.get("specialty", {})
-        if isinstance(specialty, dict):
-            writer_bonus += specialty.get("prestige_multiplier", 1.0) * 2
-            if calendar and calendar.season in specialty.get("peak_seasons", []):
-                writer_bonus += 3
-    trend_bonus = 0
-    if calendar and script.get("genre") in calendar.trending_genres:
-        trend_bonus += 5
-    return int((base_quality * 0.3) + tag_bonus + appeal_bonus + writer_bonus + trend_bonus)
-
 def get_contracted_writers(studio):
     return [
         c for c in studio.contracts.get("writers", [])
         if "person" in c and "name" in c["person"]
     ]
-
- 
-
-def inhouse_script_production(scripts):
-    """Displays finalized in-house scripts for potential production."""
-    print("\n🎞️ Production Slate Review")
-
-    # Only show scripts that are finalized and not yet in production
-    available_scripts = [s for s in scripts if s.get("status") == "finalized"]
-    if not available_scripts:
-        print("📭 No finalized scripts available for production.")
-        return None
-
-    print("Available In-House Scripts:")
-
-    def get_appeal_level(score):
-        potential = int(score * 100)
-        return "High" if potential >= 75 else "Medium" if potential >= 50 else "Low"
-
-    def buzz_rating(score):
-        potential = int(score * 100)
-        if potential >= 85:
-            return "🔥 Hot"
-        elif potential >= 70:
-            return "Trending"
-        elif potential >= 50:
-            return "Lukewarm"
-        else:
-            return "Cold"
-
-    for i, s in enumerate(available_scripts, 1):
-        appeal = get_appeal_level(s["appeal"])
-        buzz = buzz_rating(s["appeal"])
-        writer = s.get("writer", {"name": "Unknown", "specialty": {"name": "N/A"}, "interests": [], "education": "N/A"})
-        print(f"{i}. {s['title']} ({s['genre']}, Rated: {s['rating']})")
-        print(f"   ✨ Appeal: {appeal} | Buzz: {buzz} | Budget Class: {s['budget_class']}")
-        print(f"   🏷️ Tags: {', '.join(s['tags'] or ['None'])}")
-        print(f"   ✍️ Writer: {writer['name']} ({writer['specialty']['name']}) | Interests: {', '.join(writer['interests'])} | School: {writer['education']}")
-
-    print("\n📌 Appeal Levels: Low (<50), Medium (50–74), High (75+)")
-    print("📡 Buzz Ratings: 🔥 Hot (85+), Trending (70–84), Lukewarm (50–69), Cold (<50)")
-
-    choice = input_number(
-        "Enter number to greenlight (or press [enter] to skip): ",
-        [str(i + 1) for i in range(len(available_scripts))]
-    )
-
-    if choice is not None:
-        selected = available_scripts[choice - 1]
-        selected["status"] = "in_production"  # mark script as moved into production
-        return selected
-
-    return None
-
-
 
 # --- in main.py ---
 def manage_scripts(managed_scripts, casting_pool, calendar, studio):
@@ -222,8 +151,8 @@ def manage_scripts(managed_scripts, casting_pool, calendar, studio):
     for i, s in enumerate(managed_scripts, 1):
         desc = s.get("description") or generate_script_description(s)
         print(f"{i}. {s['title']} ({s['genre']}, Draft {s['draft_number']})")
-        print(f"   📝 Status: {s['status']} | Quality: {s['quality']}/{s['potential_quality']}")
-        print(f"   📖 {desc}")
+        print(f" 📝 Status: {s['status']} | Quality: {s['quality']}/{s['potential_quality']}")
+        print(f" 📖 {desc}")
 
     choice = input("Enter script number to manage or [Enter] to skip: ").strip()
     if not choice or not choice.isdigit():
@@ -234,6 +163,8 @@ def manage_scripts(managed_scripts, casting_pool, calendar, studio):
 
     if action == "f":
         finalize_script(selected, studio, calendar)
+        selected["status"] = "approved"  # mark as approved and ready for production
+
 
     elif action == "r":
         signed_writers = [
@@ -255,145 +186,31 @@ def manage_scripts(managed_scripts, casting_pool, calendar, studio):
         )
         if writer_choice:
             rewrite_script(selected, writer_choice, calendar)
-
-
+            selected["status"] = "draft" # ✅ Keep draft status until finalized
 
 
 def display_scripts_for_production(scripts):
     """Displays scripts that are approved and ready for production."""
-    # The 'scripts' list is now passed in directly, so we no longer need the old logic to find them.
     if not scripts:
         print("📭 No scripts available for production.")
         return
 
     print("\n📜 Available Scripts for Production\n")
     budget_meanings = {
-        "Low": "Low (Under $25M)",
-        "Mid": "Mid ($25–60M)",
-        "High": "High (Over $60M)",
-    }
+            "Low": "Low (Under $25M)",
+            "Mid": "Mid ($25–60M)",
+            "High": "High (Over $60M)",
+        }
     for idx, script in enumerate(scripts, 1):
-        buzz = calculate_script_buzz(script)
-        budget_desc = budget_meanings.get(script.get("budget_class", "Unknown"))
-        writer = script.get("writer", {})
-        print(f"{idx}. {script['title']} ({script['genre']}, Rated: {script.get('rating', 'NR')})")
-        print(f"   ✨ Appeal: {script.get('appeal', 0.0):.2f} | Buzz: {buzz} | Budget: {budget_desc}")
-        print(f"   🏷️ Tags: {', '.join(script.get('tags', []) or ['None'])}")
-        print(f"   ✍️ Writer: {writer.get('name', 'Unknown')} ({writer.get('specialty', {}).get('name', 'N/A')})")
-        print(f"   📖 {script.get('description', generate_script_description(script))}")
-
-def produce_film(studio, script, calendar, casting_pool, casting_manager):
-    """
-    Guides the player through producing a new film.
-    
-    Steps:
-      1. Select a director (must be available in free agent pool).
-      2. Select a lead actor (prefer signed staff, fallback to free agents).
-      3. Pick release window (1–6 months ahead).
-      4. Schedule the film and apply bonuses/synergies.
-    """
-
-    # --- Step 1: Director selection ---
-    # First check if studio has signed directors under contract
-    signed_directors = [
-        c["person"] for c in studio.contracts.get("directors", []) if "person" in c and "name" in c["person"]
-    ]
-
-    # Determine how many more choices are needed to reach a target of 3
-    needed = max(0, 3 - len(signed_directors))
-    free_agents = casting_pool.get_director_choices(needed) if needed > 0 else []
-
-    # Combine the lists, signed directors will be listed first
-    all_directors = signed_directors + free_agents
-
-    if all_directors:  # <--- use the combined list here
-        print("\n🎬 Choose a director for your film:")
-
-        def director_fmt(d):
-            name = d.get("name", "Unknown")
-            fame = d.get("fame", 0)
-            hist = casting_manager.get_history(name)
-            note = (
-                f"🎞️ Past: {hist['count']}x | Avg Q: {hist['avg_quality']:.1f} | "
-                f"Box: ${hist['avg_box_office']:.1f}M"
-                if hist
-                else "🆕 No history"
-            )
-            genre = d.get("genre_focus", "N/A")
-            style = ", ".join(d.get("tags", []))
-            return f"{name} — Fame: {fame} | Genre: {genre} | Style: {style} | {note}"
-
-        director = choose_item("Enter number: ", all_directors, director_fmt)
-    else:
-        print("⚠️ No directors available for production this month.")
-        return None
-
-    
-    # --- Step 2: Actor selection ---
-    # First check if studio has signed actors under contract
-    signed_actors = [
-        c["person"] for c in studio.contracts.get("actors", []) if "person" in c and "name" in c["person"]
-    ]
-
-    # Determine how many more choices are needed
-    needed = max(0, 3 - len(signed_actors))
-    free_agents = casting_pool.get_actor_choices(needed) if needed > 0 else []
-
-    # Combine the lists
-    all_actors = signed_actors + free_agents
-
-    if all_actors:  # <--- use the combined list here
-        print("\n🎬 Choose an actor for your film:")
-
-        def actor_fmt(a):
-            name = a.get("name", "Unknown")
-            fame = a.get("fame", 0)
-            salary = a.get("salary", 0)
-            tags = ", ".join(a.get("tags", []))
-            hist = casting_manager.get_history(name)
-            note = (
-                f"🎞️ Past: {hist['count']}x | Avg Q: {hist['avg_quality']:.1f} | "
-                f"Box: ${hist['avg_box_office']:.1f}M"
-                if hist
-                else "🆕 No history"
-            )
-            return f"{name} — Fame: {fame} | Salary: ${salary}M [{tags}] | {note}"
-
-        actor = choose_item("Enter number: ", all_actors, actor_fmt)
-    else:
-        print("⚠️ No actors available for production this month.")
-        return None
-
-
-    # --- Step 3: Release window selection ---
-    months_ahead_str = input("\n📆 Choose a release window (1–6 months from now): ").strip()
-    months_ahead = int(months_ahead_str) if months_ahead_str.isdigit() else 1
-    months_ahead = max(1, min(months_ahead, 6))  # clamp between 1–6 months
-
-
-    # --- Step 4: Schedule movie in studio ---
-    movie = studio.produce_movie(script, actor, director, calendar, months_ahead)
-
-    if movie:
-        print(
-            f"\n🗓️ Scheduled: {movie['title']} ({movie['genre']}, {movie['budget_class']})"
-            f"\n   Cast: {actor['name']} | Director: {director['name']}"
-            f"\n   Release: {movie['release_date'][1]}/{movie['release_date'][0]}"
-            f"\n   Cost: ${movie['cost']}M"
-        )
-
-        # Check for synergy bonuses between actor and script
-        matching_tags = set(script["tags"]) & set(actor["tags"])
-        if matching_tags:
-            print(f"✨ Tag synergy bonus! Matching tags: {', '.join(matching_tags)}")
-
-    else:
-        print("⚠️ Skipped production due to insufficient funds.")
-
-    return movie
-
-
-
+            buzz = script.get("buzz", 0)
+            budget_desc = budget_meanings.get(script.get("budget_class", "Unknown"))
+            writer = script.get("writer", {})
+            print(f"{idx}. {script['title']} ({script['genre']}, Rated: {script.get('rating', 'NR')})")
+            print(f" ✨ Appeal: {script.get('appeal', 0.0):.2f} | Buzz: {buzz} | Budget: {budget_desc}")
+            print(f" 🏷️ Tags: {', '.join(script.get('tags', []) or ['None'])}")
+            print(f" ✍️ Writer: {writer.get('name', 'Unknown')} ({writer.get('specialty', {}).get('name', 'N/A')})")
+            print(f" 📖 {script.get('description', generate_script_description(script))}")
+            
 
 # --- End-of-Year Report ---
 def print_awards_summary(awards):
@@ -538,9 +355,17 @@ def hollywood_sim():
     studio = Studio(year=calendar.year)
     casting_manager = CastingManager()
     market_pool = init_market()
-    
+    game_setup(calendar, studio, market_pool, casting_pool)
 
-    # Populate initial talent pools
+    # Rival studios
+    rival_studios = [
+        RivalStudio("Silver Screen Studios", balance=150, prestige=10),
+        RivalStudio("Golden Gate Films", balance=120, prestige=8),
+        RivalStudio("Sunset Pictures", balance=100, prestige=5),
+    ]
+    print(f"🏢 Competing against: {', '.join(r.name for r in rival_studios)}")
+
+    # Populate starting talent pool
     for _ in range(30):
         casting_pool.add_actor(generate_actor(calendar.year))
     for _ in range(10):
@@ -550,125 +375,97 @@ def hollywood_sim():
 
     print_banner()
 
-    # Main game loop for 12 months
+    # --- Main Loop: 12 Months ---
     for _ in range(12):
         display_game_state(calendar, studio, casting_pool)
 
         if studio.is_bankrupt():
             print("💀 Your studio is bankrupt! You can no longer produce films.")
-            print("🧾 Consider releasing existing movies to earn money...")
-        else:
-            run_market_phase(market_pool, casting_pool, calendar, studio)
+            break
 
-            # --- Script Development Phase ---
-            writers = get_contracted_writers(studio)
+        # 1. Refresh Market
+        refresh_market(market_pool, casting_pool, calendar, studio)
+        print("\n🛒 Market refreshed with new scripts & talent.")
 
-            if not writers:
-                print("You have no contracted writers! Hire one before generating a script.")
-            else:
-                # Let player choose a writer safely
-                print("Select a contracted writer to assign the script to (or press Enter to skip):")
-                for i, w in enumerate(writers, 1):
-                    print(f"{i}. {w['person']['name']} (Fame {w['person']['fame']}, Style {', '.join(w['person']['signature_tags'])})")
+        # 2. Rivals Act
+        print("\n🏢 Rival studios are making their moves...")
+        for rival in rival_studios:
+            actions = rival.act_month(market_pool, calendar)
+            for action in actions:
+                print(f"   - {action}")
 
-                selected_writer = None
-                while True:
-                    choice_str = input("Choose writer: ").strip()
-                    if choice_str == "":
-                        print("⏩ Skipped script assignment this month.")
-                        break
-                    if choice_str.isdigit() and 1 <= int(choice_str) <= len(writers):
-                        selected_writer = writers[int(choice_str) - 1]["person"]
-                        break
-                    print(f"⚠️ Invalid choice. Enter a number between 1 and {len(writers)}, or press Enter to skip.")
+        # 3. Market Prices Adjust
+        adjust_market_prices(market_pool, calendar)
+        print("📉 Market prices adjusted based on supply & demand.")
 
-                # Generate script only if a writer was selected
-                if selected_writer:
-                    script = generate_script(calendar, selected_writer)
-                    studio.scripts.append(script)
-                    print(f"✅ New script '{script['title']}' written by {selected_writer['name']}!")
+        # 4. Player Market Phase
+        run_market_phase(market_pool, casting_pool, calendar, studio)
 
+        # 5. Script Development
+        writers = get_contracted_writers(studio)
+        if writers:
+            print("Select a contracted writer to generate a new script:")
+            for i, w in enumerate(writers, 1):
+                person = w["person"]
+                print(f"{i}. {person['name']} (Fame {person.get('fame', 0)}, Style {', '.join(person.get('signature_tags', []))})")
+            choice = input("Choose writer [Enter to skip]: ").strip()
+            if choice.isdigit() and 1 <= int(choice) <= len(writers):
+                selected_writer = writers[int(choice) - 1]["person"]
+                script = generate_script(calendar, selected_writer)
+                studio.scripts.append(script)
+                print(f"✅ New script '{script['title']}' written by {selected_writer['name']}!")
 
-            script_idx = inhouse_script_production(studio.scripts)
-            if script_idx is not None:
-                selected_script = studio.scripts[script_idx - 1]
+        # 6. Script Management
+        scheduled_titles = {m["title"] for m in studio.scheduled_movies}
+        released_titles = {m["title"] for m in studio.released_movies}
+        managed_scripts = [
+            s for s in studio.scripts
+            if s["title"] not in scheduled_titles and s["title"] not in released_titles
+        ]
+        manage_scripts(managed_scripts, casting_pool, calendar, studio)
 
-            # Script Management Phase
-            scheduled_titles = {m["title"] for m in studio.scheduled_movies}
-            released_titles = {m["title"] for m in studio.released_movies}
-            managed_scripts = [
-                s
-                for s in studio.scripts
-                if s["title"] not in scheduled_titles and s["title"] not in released_titles
-            ]
-            manage_scripts(managed_scripts, casting_pool, calendar, studio)
+        # 7. Draft Production
+        print("\n🎬 Drafting Production...")
+        draft_production(studio, calendar, casting_pool, market_pool)
 
-            # Production Phase
-            approved_scripts = [
-                s
-                for s in studio.scripts
-                if s["status"] == "approved"
-                and s["title"] not in scheduled_titles
-                and s["title"] not in released_titles
-            ]
-            display_scripts_for_production(approved_scripts)
+        # 8. Post-Production & Marketing
+        run_post_production_phase(studio, calendar)
 
-            if approved_scripts:
-                prod_choice_str = input(
-                    "Enter number of script to produce, or press [Enter] to skip this month: "
-                ).strip()
-                if (
-                    prod_choice_str
-                    and prod_choice_str.isdigit()
-                    and 1 <= int(prod_choice_str) <= len(approved_scripts)
-                ):
-                    produce_film(
-                        studio,
-                        approved_scripts[int(prod_choice_str) - 1],
-                        calendar,
-                        casting_pool,
-                        casting_manager,
-                    )
-                else:
-                    print("⏩ Skipping production this month.")
-
-        # Monthly Updates
-        for movie in studio.check_for_releases(calendar):
-            print(
-                f"💥 Released: {movie['title']} | Earnings: ${movie.get('box_office', '(Est.)')}M | Quality: {movie['quality']}"
-            )
-            casting_manager.record_collaboration(movie["cast"], movie)
+        # 9. Releases
+        releases = studio.check_for_releases(calendar)
+        for movie in releases:
+            logs = studio.apply_post_production(movie)
+            for l in logs:
+                print(f"🛠️ {movie['title']} — {l}")
+            print(f"💥 Released: {movie['title']} (Quality: {movie.get('quality')})")
+            casting_manager.record_collaboration(movie.get("cast", {}), movie)
             score, review = studio.generate_review(movie)
-            print(f"📝 Critics Score: {score}/100 — {review}")
+            print(f"📝 Critics: {score}/100 — {review}")
 
-        if studio.is_bankrupt() and not studio.scheduled_movies:
-            print("\n💔 Your studio has no movies in production and is bankrupt.")
-            print("☠️ GAME OVER.")
-            end_of_year_report(studio, casting_pool)
-            return  # End the simulation immediately
-
+        # 10. Monthly Revenue
         studio.update_revenue()
-        print("\n📈 Monthly Revenue Update:")
+        print("\n📈 Revenue Update:")
         for movie in studio.released_movies:
             if movie.get("monthly_revenue"):
-                print(f"• {movie['title']}: ${movie['monthly_revenue'][0]}M incoming")
+                print(f"• {movie['title']}: ${movie['monthly_revenue'][0]:.2f}M")
 
+        # 11. Monthly Expenses
         expense = studio.expenses()
-        print(
-            f"💸 Monthly Expenses: - Base $15M, Staff ${len(studio.released_movies)*0.2:.2f}M, Production ${len(studio.scheduled_movies):.2f}M, Prestige ${studio.prestige*0.1:.2f}M = Total ${expense['total']:.2f}M"
-        )
+        print(f"💸 Expenses: Total ${expense['total']:.2f}M")
 
+        # 12. Events & News
+        events.run_random_events(studio, calendar)
         if studio.newsfeed:
             print("\n📰 Hollywood News:")
             for story in studio.newsfeed[-3:]:
                 print(f"• {story}")
 
-        # Advance time and run events
+        # 13. Advance Time
         calendar.advance()
-        events.run_random_events(studio, calendar)
 
-    # End of simulation after 12 months
+    # End of Year Report
     end_of_year_report(studio, casting_pool)
+
 
 
 if __name__ == "__main__":

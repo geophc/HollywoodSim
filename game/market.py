@@ -1,10 +1,10 @@
-# market.py
-
 import random
 from personnel import generate_actor, generate_writer, generate_director, generate_staff_member
 from scripts import generate_script
 from contracts import create_contract
 from game_data import SEASONS, STAFF_SPECIALTIES
+
+# market.py
 
 class MarketPool:
     def __init__(self):
@@ -14,45 +14,94 @@ class MarketPool:
         self.writers = []
         self.staff = []
 
-    # Convenience methods
-    def add_actor(self, actor): self.actors.append(actor)
-    def add_director(self, director): self.directors.append(director)
-    def add_writer(self, writer): self.writers.append(writer)
-    def add_staff(self, staff): self.staff.append(staff)
-    def add_script(self, script): self.scripts.append(script)
+    # --- Convenience add methods ---
+    def add_actor(self, actor):
+        self.actors.append(actor)
+
+    def add_director(self, director):
+        self.directors.append(director)
+
+    def add_writer(self, writer):
+        self.writers.append(writer)
+
+    def add_staff(self, staff):
+        self.staff.append(staff)
+
+    def add_script(self, script):
+        self.scripts.append(script)
+
+
+    def clear(self):
+        self.scripts.clear()
+        self.actors.clear()
+        self.directors.clear()
+        self.writers.clear()
+        self.staff.clear()
 
 
 def init_market():
     return MarketPool()
 
 
-def add_to_market(pool, kind, item):
-    if hasattr(pool, kind):
-        getattr(pool, kind).append(item)
+def get_demand_modifiers(calendar):
+    """Calculates genre demand multipliers based on trends and events."""
+    modifiers = {}
+    for genre in calendar.trending_genres:
+        modifiers[genre] = modifiers.get(genre, 1.0) * 1.25
+
+    event = calendar.get_current_event()
+    if event in ["Awards Season Kick-off", "Oscars Buzz"]:
+        modifiers["Drama"] = modifiers.get("Drama", 1.0) * 1.5
+    elif event == "Summer Blockbuster Season":
+        for g in ["Action", "Sci-Fi"]:
+            modifiers[g] = modifiers.get(g, 1.0) * 1.4
+    elif event == "Holiday Movie Rush":
+        for g in ["Family", "Musical"]:
+            modifiers[g] = modifiers.get(g, 1.0) * 1.3
+    return modifiers
+
+
+def adjust_market_prices(pool, calendar):
+    """Adjust script/talent prices based on supply & demand."""
+    scarcity_factor = 1.0
+    if len(pool.scripts) < 3:
+        scarcity_factor *= 1.2
+    if len(pool.actors) < 5:
+        scarcity_factor *= 1.15
+
+    demand_mods = get_demand_modifiers(calendar)
+
+    for script in pool.scripts:
+        base_value = script.get("potential_quality", 50) * 0.25
+        genre_mod = demand_mods.get(script["genre"], 1.0)
+        script["value"] = round(base_value * scarcity_factor * genre_mod, 2)
+
+    for actor in pool.actors:
+        if "Action Hero" in actor.get("tags", []) and "Action" in demand_mods:
+            actor["salary"] = round(actor["salary"] * 1.1, 2)
 
 
 def refresh_market(pool, casting_pool, calendar, studio):
-    MAX_STAFF = 20
-    if len(pool.staff) > MAX_STAFF:
-        pool.staff = pool.staff[-MAX_STAFF:]
+    """Generate new scripts/talent and rebalance prices."""
+    # Actors, writers, directors
+    pool.actors.append(generate_actor(calendar.year))
+    pool.directors.append(generate_director(calendar.year))
+    pool.writers.append(generate_writer(calendar.year))
 
-    # Add new talent safely
-    pool.add_actor(generate_actor(calendar.year))
-    pool.add_director(generate_director(calendar.year))
-    pool.add_writer(generate_writer(calendar.year))
-
-    # Generate scripts
+    # Generate new scripts
     if pool.writers:
         for writer in random.sample(pool.writers, min(2, len(pool.writers))):
             script = generate_script(calendar, writer)
             script["value"] = round(script["potential_quality"] * 0.25, 2)
-            pool.add_script(script)
+            pool.scripts.append(script)
 
-    # Add staff
-    staff_roles = list(STAFF_SPECIALTIES.keys())
-    for _ in range(2):
-        role = random.choice(staff_roles)
-        pool.add_staff(generate_staff_member(role, calendar.year))
+    # Staff (limit)
+    if len(pool.staff) < 20:
+        role = random.choice(list(STAFF_SPECIALTIES.keys()))
+        pool.staff.append(generate_staff_member(role, calendar.year))
+
+    # Always rebalance after refresh
+    adjust_market_prices(pool, calendar)
 
 
 def view_market(pool):
@@ -244,3 +293,21 @@ def estimate_pre_release_value(movie, season):
     )
     seasonal_boost = SEASONS.get(season, {}).get("genre_boosts", {}).get(movie["script"].get("genre", ""), 1.0)
     return round(buzz_score * 0.1 * seasonal_boost, 2)
+
+
+def run_monthly_turn(self):
+    self.calendar.advance()
+    refresh_market(self.market_pool, self.casting_pool, self.calendar, self.studio)
+
+    # Rival studios take actions
+    for rival in self.rivals:
+        actions = rival.act_month(self.market_pool, self.calendar)
+        for a in actions:
+            self.log_message(f"🏢 Rival: {a}")
+
+    # Adjust prices based on supply & demand
+    adjust_market_prices(self.market_pool, self.calendar)
+
+    self.update_all_views()
+    self.log_message("Advanced to new month with rival activity.")
+

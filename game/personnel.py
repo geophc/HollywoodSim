@@ -179,6 +179,17 @@ class CastingPool:
             director["age"] += 1
         for staff_member in self.staff:
             staff_member["experience"] += 1
+    def clear(self):
+        """Remove all talent from this casting pool (quick reset)."""
+        # Use list.clear() so existing list objects remain the same identity
+        # in case other code holds references to them.
+        self.actors.clear()
+        self.writers.clear()
+        self.directors.clear()
+        self.staff.clear()
+
+
+
 class CastingManager:
     def __init__(self):
         self.collaborations = {}
@@ -309,3 +320,9 @@ class TalentPool:
         for staff_member in self.staff:
             staff_member["experience"] += 1
 
+    def clear(self):
+        """Reset all talent lists in the unified TalentPool."""
+        self.actors.clear()
+        self.writers.clear()
+        self.directors.clear()
+        self.staff.clear()

@@ -15,6 +15,15 @@ class Event:
             self.effect_fn(studio, calendar)
 
 
+class EventManager:
+    def __init__(self):
+        self.history = []  # past triggered events
+    
+    def roll_monthly_events(self, studio, calendar):
+        events = run_random_events(studio, calendar)
+        self.history.extend(events)
+        return events
+
 # --- EVENT POOLS ---
 
 def scandal_event(actor):
